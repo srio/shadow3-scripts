@@ -77,7 +77,6 @@ try:
     import srwlib
 except ImportError:
     print("Failed to import srwlib. Do not try to use it!")
-    #sys.exit("Import error: srwlib")
 
 #catch standard optput
 try:
@@ -118,13 +117,18 @@ m2ev = codata_c*codata_h/codata_ec      # lambda(m)  = m2eV / energy(eV)
 scanCounter = 0
 
 # directory  where to find urgent and us binaries
-home_bin='/scisoft/xop2.4/bin.linux/'
-#home_bin='/Users/srio/xop2.3/bin.darwin/'
+try:
+    home_bin
+except NameError:
+    home_bin='/users/srio/Oasys/Orange-XOPPY/orangecontrib/xoppy/bin.linux/'
+    #home_bin='/scisoft/xop2.4/bin.linux/'
+    print("srundplug: undefined home_bin. It has been set to ",home_bin)
+
 #check
 if os.path.isfile(home_bin+'us') == False:
-    sys.exit("File not found: "+home_bin+'us')
+    print("srundplug: File not found: "+home_bin+'us')
 if os.path.isfile(home_bin+'urgent') == False:
-    sys.exit("File not found: "+home_bin+'urgent')
+    sys.exit("srundplug: File not found: "+home_bin+'urgent')
 
 #
 #----------------------------  FUNCTIONS -------------------------------------
@@ -157,7 +161,7 @@ def getGlossaryElement(str1=""):
     if (str1 == "BC_InsertionDevice"):
         dict1.update(  {
             "PeriodID" : 26.0e-3,
-            "N" : 96,
+            "NPeriods" : 96,
             "Kv" : 0.82} )
 
     if (str1 == "IC_DriftSpace"):
@@ -193,9 +197,9 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
         idv['Kv'] = 4.0 # 0.82
-        idv['N'] = 77
+        idv['NPeriods'] = 77
         idv['PeriodID'] = 0.026
-        drift['d'] = 20.0
+        drift['distance'] = 20.0
         slit['gapH'] = 0.001 #0.001
         slit['gapV'] = 0.001 #0.001
     
@@ -209,9 +213,9 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
         idv['Kv'] = 1.68
-        idv['N'] = int(4.0/0.018)
+        idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
-        drift['d'] = 30.0
+        drift['distance'] = 30.0
         slit['gapH'] = 0.001
         slit['gapV'] = 0.001
 
@@ -225,9 +229,9 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
         idv['Kv'] = 1.68
-        idv['N'] = int(4.0/0.018)
+        idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
-        drift['d'] = 30.0
+        drift['distance'] = 30.0
         slit['gapH'] = 0.001
         slit['gapV'] = 0.001
 
@@ -242,9 +246,9 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
         idv['Kv'] = 1.68
-        idv['N'] = int(4.0/0.018)
+        idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
-        drift['d'] = 30.0
+        drift['distance'] = 30.0
 
     if nameBeamline == "ESRF_HB_OB":
         if silent == False:
@@ -256,9 +260,9 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.04
         idv['Kv'] = 1.68
-        idv['N'] = int(4.0/0.018)
+        idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
-        drift['d'] = 30.0
+        drift['distance'] = 30.0
         slit['gapH'] = 0.001 
         slit['gapV'] = 0.001 
 
@@ -274,9 +278,9 @@ def getBeamline(nameBeamline,silent=False):
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.0
         idv['Kv'] = 1.68
-        idv['N'] = int(4.0/0.018)
+        idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
-        drift['d'] = 30.0
+        drift['distance'] = 30.0
         slit['gapH'] = 0.001 
         slit['gapV'] = 0.001 
 
@@ -328,7 +332,7 @@ def calcUndulator(bl,photonEnergy=None,distance=None,silent=False):
     print ("Electron beam Emittance V [m.rad]: %e \n"%(bl['ElectronBeamSizeV']*bl['ElectronBeamDivergenceV']))
     print ("Electron Beta H [m]: %e \n"%(bl['ElectronBeamSizeH']/bl['ElectronBeamDivergenceH']))
     print ("Electron Beta V [m]: %e \n"%(bl['ElectronBeamSizeV']/bl['ElectronBeamDivergenceV']))
-    l1 = bl['PeriodID']*bl['N']
+    l1 = bl['PeriodID']*bl['NPeriods']
     print ("Undulator length [m]: %f \n"%(l1))
 
     # 
@@ -435,10 +439,10 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
 
     und = srwlib.SRWLMagFldU([harmB])
     und.per = bl['PeriodID'] #period length [m]
-    und.nPer = bl['N'] #number of periods (will be rounded to integer)
+    und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0])) 
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -483,7 +487,7 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     stkF = srwlib.SRWLStokes() #for spectral flux vs photon energy
     #srio stkF.allocate(10000, 1, 1) #numbers of points vs photon energy, horizontal and vertical positions
     stkF.allocate(photonEnergyPoints, 1, 1) #numbers of points vs photon energy, horizontal and vertical positions
-    stkF.mesh.zStart = bl['d'] #longitudinal position [m] at which UR has to be calculated
+    stkF.mesh.zStart = bl['distance'] #longitudinal position [m] at which UR has to be calculated
     stkF.mesh.eStart = photonEnergyMin #initial photon energy [eV]
     stkF.mesh.eFin =   photonEnergyMax #final photon energy [eV]
     stkF.mesh.xStart = -bl['gapH']/2 #initial horizontal position [m]
@@ -561,7 +565,7 @@ def calc1dUrgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergy
         f.write("%f\n"%(0.00000))         #KX
         f.write("%f\n"%(bl['Kv']))        #KY
         f.write("%f\n"%(0.00000))         #PHASE
-        f.write("%d\n"%(bl['N']))         #N
+        f.write("%d\n"%(bl['NPeriods']))         #N
 
         f.write("%f\n"%(photonEnergyMin))            #EMIN
         f.write("%f\n"%(photonEnergyMax))            #EMAX
@@ -574,7 +578,7 @@ def calc1dUrgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergy
         f.write("%f\n"%(bl['ElectronBeamDivergenceH']*1e3))   #SIGX1
         f.write("%f\n"%(bl['ElectronBeamDivergenceV']*1e3))   #SIGY1
 
-        f.write("%f\n"%(bl['d']))         #D
+        f.write("%f\n"%(bl['distance']))         #D
         f.write("%f\n"%(0.00000))         #XPC
         f.write("%f\n"%(0.00000))         #YPC
         f.write("%f\n"%(bl['gapH']*1e3))  #XPS
@@ -684,11 +688,11 @@ def calc1dUs(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoin
                (bl['ElectronBeamSizeH']*1e3,bl['ElectronBeamSizeV']*1e3,
                 bl['ElectronBeamDivergenceH']*1e3,bl['ElectronBeamDivergenceV']*1e3) )
         f.write("    %f      %d   0.000   %f               Period N Kx Ky\n"%
-                (bl['PeriodID']*1e2,bl['N'],bl['Kv']) )
+                (bl['PeriodID']*1e2,bl['NPeriods'],bl['Kv']) )
         f.write("    %f      %f     %d                   Emin Emax Ne\n"%
                (photonEnergyMin,photonEnergyMax,photonEnergyPoints) )
         f.write("  %f   0.000   0.000   %f   %f    50    50   D Xpc Ypc Xps Yps Nxp Nyp\n"%
-               (bl['d'],bl['gapH']*1e3,bl['gapV']*1e3) )
+               (bl['distance'],bl['gapH']*1e3,bl['gapV']*1e3) )
         f.write("       4       4       0                       Mode Method Iharm\n")
         f.write("       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma\n")
         f.write("foreground\n")
@@ -786,10 +790,10 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
 
     und = srwlib.SRWLMagFldU([harmB])
     und.per = bl['PeriodID'] #period length [m]
-    und.nPer = bl['N'] #number of periods (will be rounded to integer)
+    und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0])) 
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -827,7 +831,7 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     #***********UR Stokes Parameters (mesh) for power densiyu
     stkP = srwlib.SRWLStokes() #for power density
     stkP.allocate(1, hSlitPoints, vSlitPoints) #numbers of points vs horizontal and vertical positions (photon energy is not taken into account)
-    stkP.mesh.zStart = bl['d'] #longitudinal position [m] at which power density has to be calculated
+    stkP.mesh.zStart = bl['distance'] #longitudinal position [m] at which power density has to be calculated
     stkP.mesh.xStart = -bl['gapH']/2 #initial horizontal position [m]
     stkP.mesh.xFin =    bl['gapH']/2 #final horizontal position [m]
     stkP.mesh.yStart = -bl['gapV']/2 #initial vertical position [m]
@@ -953,10 +957,10 @@ def calc2dUs(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPoints
                (bl['ElectronBeamSizeH']*1e3,bl['ElectronBeamSizeV']*1e3,
                 bl['ElectronBeamDivergenceH']*1e3,bl['ElectronBeamDivergenceV']*1e3) )
         f.write("    %f      %d   0.000   %f               Period N Kx Ky\n"%
-                (bl['PeriodID']*1e2,bl['N'],bl['Kv']) )
+                (bl['PeriodID']*1e2,bl['NPeriods'],bl['Kv']) )
         f.write("    9972.1   55000.0     500                   Emin Emax Ne\n")
         f.write("  %f   0.000   0.000   %f   %f    %d    %d   D Xpc Ypc Xps Yps Nxp Nyp\n"%
-               (bl['d'],bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
+               (bl['distance'],bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
         f.write("       6       1       0                       Mode Method Iharm\n")
         f.write("       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma\n")
         f.write("foreground\n")
@@ -1086,7 +1090,7 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
         f.write("%f\n"%(0.00000))         #KX
         f.write("%f\n"%(bl['Kv']))        #KY
         f.write("%f\n"%(0.00000))         #PHASE
-        f.write("%d\n"%(bl['N']))         #N
+        f.write("%d\n"%(bl['NPeriods']))         #N
 
         f.write("1000.0\n")                #EMIN
         f.write("100000.0\n")              #EMAX
@@ -1099,7 +1103,7 @@ def calc2dUrgent(bl,fileName="/dev/null",fileAppend=False,hSlitPoints=21,vSlitPo
         f.write("%f\n"%(bl['ElectronBeamDivergenceH']*1e3))   #SIGX1
         f.write("%f\n"%(bl['ElectronBeamDivergenceV']*1e3))   #SIGY1
 
-        f.write("%f\n"%(bl['d']))         #D
+        f.write("%f\n"%(bl['distance']))         #D
         f.write("%f\n"%(0.00000))         #XPC
         f.write("%f\n"%(0.00000))         #YPC
         f.write("%f\n"%(bl['gapH']*1e3))  #XPS
@@ -1259,10 +1263,10 @@ def calc3dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
 
     und = srwlib.SRWLMagFldU([harmB])
     und.per = bl['PeriodID'] #period length [m]
-    und.nPer = bl['N'] #number of periods (will be rounded to integer)
+    und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0])) 
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -1300,7 +1304,7 @@ def calc3dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     #***********UR Stokes Parameters (mesh) for Spectral Flux
     stkF = srwlib.SRWLStokes() #for spectral flux vs photon energy
     stkF.allocate(photonEnergyPoints, hSlitPoints, vSlitPoints) #numbers of points vs photon energy, horizontal and vertical positions
-    stkF.mesh.zStart = bl['d'] #longitudinal position [m] at which UR has to be calculated
+    stkF.mesh.zStart = bl['distance'] #longitudinal position [m] at which UR has to be calculated
     stkF.mesh.eStart = photonEnergyMin #initial photon energy [eV]
     stkF.mesh.eFin =   photonEnergyMax #final photon energy [eV]
     stkF.mesh.xStart = -bl['gapH']/2 #initial horizontal position [m]
@@ -1486,7 +1490,7 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
             f.write("%f\n"%(0.00000))         #KX
             f.write("%f\n"%(bl['Kv']))        #KY
             f.write("%f\n"%(0.00000))         #PHASE
-            f.write("%d\n"%(bl['N']))         #N
+            f.write("%d\n"%(bl['NPeriods']))         #N
     
             f.write("%f\n"%(ener))       #EMIN
             f.write("100000.0\n")              #EMAX
@@ -1499,7 +1503,7 @@ def calc3dUrgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
             f.write("%f\n"%(bl['ElectronBeamDivergenceH']*1e3))   #SIGX1
             f.write("%f\n"%(bl['ElectronBeamDivergenceV']*1e3))   #SIGY1
     
-            f.write("%f\n"%(bl['d']))         #D
+            f.write("%f\n"%(bl['distance']))         #D
             f.write("%f\n"%(0.00000))         #XPC
             f.write("%f\n"%(0.00000))         #YPC
             f.write("%f\n"%(bl['gapH']*1e3))  #XPS
@@ -1687,10 +1691,10 @@ def calc3dUs(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoint
                    (bl['ElectronBeamSizeH']*1e3,bl['ElectronBeamSizeV']*1e3,
                     bl['ElectronBeamDivergenceH']*1e3,bl['ElectronBeamDivergenceV']*1e3) )
             f.write("    %f      %d   0.000   %f               Period N Kx Ky\n"%
-                    (bl['PeriodID']*1e2,bl['N'],bl['Kv']) )
+                    (bl['PeriodID']*1e2,bl['NPeriods'],bl['Kv']) )
             f.write("    %f   55000.0       1                   Emin Emax Ne\n"%(ener))
             f.write("  %f   0.000   0.000   %f   %f    %d    %d   D Xpc Ypc Xps Yps Nxp Nyp\n"%
-                   (bl['d'],bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
+                   (bl['distance'],bl['gapH']*1e3,bl['gapV']*1e3,hSlitPoints-1,vSlitPoints-1) )
             f.write("       1       1       0                       Mode Method Iharm\n")
             f.write("       0       0     0.0      64     8.0     0 Nphi Nalpha Dalpha2 Nomega Domega Nsigma\n")
             f.write("foreground\n")
