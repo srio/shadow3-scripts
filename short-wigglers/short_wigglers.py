@@ -524,9 +524,9 @@ if __name__ == "__main__":
     # dump results
     #
     if emittance:
-        file_latex = "/users/srio/Working/rt/ESRF-new-lattice/REPORT-SHORT-WIGGLERS/table2.txt"
+        file_latex = "table2.txt"
     else:
-        file_latex = "/users/srio/Working/rt/ESRF-new-lattice/REPORT-SHORT-WIGGLERS/table1.txt"
+        file_latex = "table1.txt"
 
     f = open(file_latex,"w")
     f.write(txt_latex)
