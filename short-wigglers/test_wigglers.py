@@ -29,11 +29,11 @@ def wiggler_preprocessor(ener_gev=6.0,e_min=5000.0,e_max=5005.0,file_field="",pl
                                              shift_betax_flag=shift_betax_flag,
                                              shift_betax_value=shift_betax_value)
 
-    time.sleep(0.2)
+    #time.sleep(0.2)
 
     if 0:
         data = numpy.loadtxt("tmp.traj",skiprows=15)
-        time.sleep(0.2)
+        #time.sleep(0.2)
     
         fig = plt.figure(1)
     
@@ -75,7 +75,7 @@ def wiggler_preprocessor(ener_gev=6.0,e_min=5000.0,e_max=5005.0,file_field="",pl
                        enerPoints=1001,
                        outFile="xshwig.sha",
                        elliptical=False)
-    time.sleep(0.2)
+    #time.sleep(0.2)
 
 def wiggler_source(ener_gev=6.0,e_min=5000.0,e_max=5005.0,iwrite=1,emittance=0):
 
@@ -319,14 +319,14 @@ if __name__ == "__main__":
         title = "IDEAL"
         beam,oe1 = focusing_ideal(beam)
     
-    if 0:
+    if 1:
         #
         # 1:1 focusing
         #
         title = "1:1"
         beam,oe1 = focusing_mirror(beam,foc="1:1",grazing_theta_mrad=3.0)
     
-    if 1:
+    if 0:
         #
         # 3:1 focusing
         #
