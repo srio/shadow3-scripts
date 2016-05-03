@@ -120,8 +120,8 @@ scanCounter = 0
 try:
     home_bin
 except NameError:
-    home_bin='/users/srio/Oasys/Orange-XOPPY/orangecontrib/xoppy/bin.linux/'
-    #home_bin='/scisoft/xop2.4/bin.linux/'
+    #home_bin='/users/srio/Oasys/Orange-XOPPY/orangecontrib/xoppy/bin.linux/'
+    home_bin='/scisoft/xop2.4/bin.linux/'
     print("srundplug: undefined home_bin. It has been set to ",home_bin)
 
 #check
@@ -442,7 +442,7 @@ def calc1dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -793,7 +793,7 @@ def calc2dSrw(bl,fileName="/dev/null",fileAppend=True,hSlitPoints=101,vSlitPoint
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -1266,7 +1266,7 @@ def calc3dSrw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
     und.nPer = bl['NPeriods'] #number of periods (will be rounded to integer)
 
     #Container of all magnetic field elements
-    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('distance', [0]), srwlib.array('distance', [0]), srwlib.array('distance', [0]))
+    magFldCnt = srwlib.SRWLMagFldC([und], srwlib.array('d', [0]), srwlib.array('d', [0]), srwlib.array('d', [0]))
     
     #***********Electron Beam
     eBeam = srwlib.SRWLPartBeam()
@@ -1852,7 +1852,7 @@ if __name__ == '__main__':
     #bl = getBeamline("ID16_NA")
     bl = getBeamline("ESRF_HB")
 
-    icalc = 1  # 0=generalities
+    icalc = 3  # 0=generalities
                # 1=flux spectrum
                # 2=power density
                # 3=3d matrix (Hor,Ver,Ener,Intens)
@@ -1944,11 +1944,11 @@ if __name__ == '__main__':
         e,h,v,f = calc3dSrw(bl,photonEnergyMin=emin,photonEnergyMax=emax,
               photonEnergyPoints=npoints,fileName=fileName,fileAppend=False)
 
-        e,h,v,f = calc3dUrgent(bl,photonEnergyMin=emin,photonEnergyMax=emax, \
-              photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
+        # e,h,v,f = calc3dUrgent(bl,photonEnergyMin=emin,photonEnergyMax=emax, \
+        #       photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
 
-        e,h,v,f = calc3dUs(bl,photonEnergyMin=emin,photonEnergyMax=emax, \
-              photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
+        # e,h,v,f = calc3dUs(bl,photonEnergyMin=emin,photonEnergyMax=emax, \
+        #       photonEnergyPoints=npoints,fileName=fileName,fileAppend=True)
 
 
 
