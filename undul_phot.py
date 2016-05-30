@@ -241,7 +241,6 @@ def test_undul_phot():
         }
         """
     h = json.loads(tmp)
-    print("is dict????????????????",isinstance(h,dict))
     undul_phot(h)
     tmp = np.loadtxt("uphot.dat",skiprows=1)
     print("Obtained result[700]: %g (comparing to 6.09766e+16)"%tmp[7000])
