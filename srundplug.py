@@ -121,8 +121,8 @@ if os.path.isfile(home_bin+'us') == False:
 if os.path.isfile(home_bin+'urgent') == False:
     sys.exit("srundplug: File not found: "+home_bin+'urgent')
 
-SRW_MAX_HARMONIC_NUMBER = 61
-PYSRU_MESH_SIZE = 101
+SRW_MAX_HARMONIC_NUMBER = 21
+PYSRU_MESH_SIZE = 51
 
 ########################################################################################################################
 #
@@ -209,8 +209,8 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False,return_list=Fals
         idv['NPeriods'] = int(4.0/0.018)
         idv['PeriodID'] = 0.018
         drift['distance'] = 30.0
-        slit['gapH'] = 0.001
-        slit['gapV'] = 0.001
+        slit['gapH'] = 0.03 # 0.001
+        slit['gapV'] = 0.005 # 0.001
 
     if nameBeamline == "ESRF_LB_OB":
         if silent == False:
@@ -2232,13 +2232,18 @@ def calc3d_pysru(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
     #
     # testing convolution for non zero emittance
     #
-    # if not zero_emittance:
-    #     from scipy.ndimage.filters import convolve as convolve
-    #     SigmaH = numpy.sqrt( bl['ElectronBeamSizeH']**2 + (bl['distance']*bl['ElectronBeamDivergenceH'])**2 )
-    #     SigmaV = numpy.sqrt( bl['ElectronBeamSizeV']**2 + (bl['distance']*bl['ElectronBeamDivergenceV'])**2 )
-    #     tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
-    #     #tmp = tmp1/tmp1.max() * tmp.max()
-    #     intensArray[ie] = convolve(tmp,tmp1)/tmp1.sum()
+    if not zero_emittance:
+        from scipy.ndimage.filters import convolve as convolve
+        from scipy.ndimage.filters import gaussian_filter1d as gaussian_filter1d
+        SigmaH = numpy.sqrt( bl['ElectronBeamSizeH']**2 + (bl['distance']*bl['ElectronBeamDivergenceH'])**2 )
+        SigmaV = numpy.sqrt( bl['ElectronBeamSizeV']**2 + (bl['distance']*bl['ElectronBeamDivergenceV'])**2 )
+        tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+        for ie in range(eArray.size):
+            pass
+            #OK  intensArray[ie] = convolve(intensArray[ie],tmp1)/tmp1.sum()
+            intensArray[ie] = gaussian_filter1d(intensArray[ie],SigmaH/(hArray[1]-hArray[0]),axis=0)
+            intensArray[ie] = gaussian_filter1d(intensArray[ie],SigmaV/(vArray[1]-vArray[0]),axis=1)
+            # intensArray[ie] = gaussian_filter1d(tmp1,SigmaV,axis=1)
 
     if fileName is not None:
         for ie in range(eArray.size):
@@ -2468,36 +2473,34 @@ def compare_radiation(beamline="ESRF_HB",energy=None,zero_emittance=False,fileNa
 
     beamline_info(bl) # ,photonEnergy=[5e3,10e3,20e3],distance=20.0)
 
-    npoints_grid = 151
+    npoints_grid = 51
 
     e_s,h_s,v_s,f_s = calc3d_srw(bl,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
                         hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                         zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
-    e_u,h_u,v_u,f_u = calc3d_urgent(bl,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
-                        hSlitPoints=51,vSlitPoints=51,
-                        zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-
-    e_us,h_us,v_us,f_us = calc3d_us(bl,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
-                        hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
-                        zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    # e_u,h_u,v_u,f_u = calc3d_urgent(bl,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+    #                     hSlitPoints=51,vSlitPoints=51,
+    #                     zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    #
+    # e_us,h_us,v_us,f_us = calc3d_us(bl,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+    #                     hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
+    #                     zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
     e_py,h_py,v_py,f_py = calc3d_pysru(bl,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
                         hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                         zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
     print("Shapes for SRW:",e_s.shape,h_s.shape,v_s.shape,f_s.shape)
-    print("Shapes for URGENT:",e_u.shape,h_u.shape,v_u.shape,f_u.shape)
-    print("Shapes for US:",e_us.shape,h_us.shape,v_us.shape,f_us.shape,"MAX: ",f_us.max())
-
-
-
-
+    # print("Shapes for URGENT:",e_u.shape,h_u.shape,v_u.shape,f_u.shape)
+    # print("Shapes for US:",e_us.shape,h_us.shape,v_us.shape,f_us.shape,"MAX: ",f_us.max())
     print("Shapes for pySRU:",e_py.shape,h_py.shape,v_py.shape,f_py.shape,"MAX: ",f_py.max())
+
+
     print("Integrals for:")
     print("         SRW   :",f_s.sum()*(h_s[1]-h_s[0])*(v_s[1]-v_s[0]) )
-    print("         URGENT:",f_u.sum()*(h_u[1]-h_u[0])*(v_u[1]-v_u[0]) )
-    print("         US    :",f_us.sum()*(h_us[1]-h_us[0])*(v_us[1]-v_us[0]) )
+    # print("         URGENT:",f_u.sum()*(h_u[1]-h_u[0])*(v_u[1]-v_u[0]) )
+    # print("         US    :",f_us.sum()*(h_us[1]-h_us[0])*(v_us[1]-v_us[0]) )
     print("         pySRU :",f_py.sum()*(h_py[1]-h_py[0])*(v_py[1]-v_py[0]) )
 
     #
@@ -2508,18 +2511,18 @@ def compare_radiation(beamline="ESRF_HB",energy=None,zero_emittance=False,fileNa
 
         plot_contour(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline,e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
                      cbar=1,cbar_title="Flux ",show=0)
-        plot_contour(f_u[e_u.size/2],h_u,v_u,title="%s URGENT; E=%g eV"%(beamline,e_u[e_u.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
-                     cbar=1,cbar_title="Flux ",show=0)
-        plot_contour(f_us[e_us.size/2],h_us,v_us,title="%s US; E=%g eV"%(beamline,e_us[e_us.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
-                     cbar=1,cbar_title="Flux ",show=0)
+        # plot_contour(f_u[e_u.size/2],h_u,v_u,title="%s URGENT; E=%g eV"%(beamline,e_u[e_u.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
+        #              cbar=1,cbar_title="Flux ",show=0)
+        # plot_contour(f_us[e_us.size/2],h_us,v_us,title="%s US; E=%g eV"%(beamline,e_us[e_us.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
+        #              cbar=1,cbar_title="Flux ",show=0)
         plot_contour(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline,e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",
                  plot_points=0,contour_levels=contour_levels,cmap=None,
                  cbar=1,cbar_title="Flux ",show=0)
 
 
         plot_surface(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline,e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=0)
-        plot_surface(f_u[e_u.size/2],h_u,v_u,title="%s URGENT; E=%g eV"%(beamline,e_u[e_u.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=0)
-        plot_surface(f_us[e_us.size/2],h_us,v_us,title="%s US; E=%g eV"%(beamline,e_us[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=0)
+        # plot_surface(f_u[e_u.size/2],h_u,v_u,title="%s URGENT; E=%g eV"%(beamline,e_u[e_u.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=0)
+        # plot_surface(f_us[e_us.size/2],h_us,v_us,title="%s US; E=%g eV"%(beamline,e_us[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=0)
         plot_surface(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline,e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=0)
 
 
@@ -2531,7 +2534,7 @@ def compare_radiation(beamline="ESRF_HB",energy=None,zero_emittance=False,fileNa
 
 if __name__ == '__main__':
 
-    zero_emittance = True
+    zero_emittance = False
     iplot = True
 
     #
@@ -2548,9 +2551,10 @@ if __name__ == '__main__':
 
 
 
-    # beamlines = get_beamline("",zero_emittance=zero_emittance,return_list=1)
-    beamlines = ["XRAY_BOOKLET","ID16_NA"] # ,"ESRF_NEW_OB","SHADOW_DEFAULT"]
+    beamlines = get_beamline("",zero_emittance=zero_emittance,return_list=1)
     print("Available beamlines: ",beamlines)
+    # beamlines = ["XRAY_BOOKLET","ID16_NA"] # ,"ESRF_NEW_OB","SHADOW_DEFAULT"]
+
 
 
     #
@@ -2565,11 +2569,11 @@ if __name__ == '__main__':
     # Radiance
     #
 
-    # compare_radiation("XRAY_BOOKLET",zero_emittance=zero_emittance,energy=None,iplot=iplot)
+    # compare_radiation("ESRF_HB",zero_emittance=zero_emittance,energy=None,iplot=iplot)
 
-    # for beamline in beamlines:
-    #     compare_radiation(beamline,zero_emittance=zero_emittance,iplot=iplot)
-    #     if iplot: plot_show()
+    for beamline in beamlines:
+        compare_radiation(beamline,zero_emittance=zero_emittance,iplot=iplot)
+        if iplot: plot_show()
 
 
     #
@@ -2588,7 +2592,7 @@ if __name__ == '__main__':
     # compare_power_density("ESRF_NEW_OB",zero_emittance=zero_emittance,iplot=iplot)
     # compare_power_density("ID16_NA",zero_emittance=zero_emittance,iplot=iplot)
     # compare_power_density("SHADOW_DEFAULT",zero_emittance=zero_emittance,iplot=iplot)
-    compare_power_density("XRAY_BOOKLET",zero_emittance=zero_emittance,iplot=iplot)
+    # compare_power_density("XRAY_BOOKLET",zero_emittance=zero_emittance,iplot=iplot)
     # compare_power_density("ID16_NA",zero_emittance=zero_emittance,iplot=iplot)
 
 
