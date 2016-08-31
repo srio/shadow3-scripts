@@ -5,7 +5,7 @@ import Shadow
 import sys
 sys.path.append('/scisoft/xop2.4/extensions/shadowvui/python_scripts/')
 from transfocator_id30b_lighted import transfocator_compute_configuration
-from srundplug import getBeamline,calc1dUrgent,calc1dSrw
+from srundplug import get_beamline,calc1d_urgent,calc1d_srw
 
 def run_source(label='ESRF_LB_OB',undulator='U20',photon_energy_ev=14200.0,\
         photon_energy_bandwidth=1.0,compute_flux=1):
@@ -14,7 +14,7 @@ def run_source(label='ESRF_LB_OB',undulator='U20',photon_energy_ev=14200.0,\
     #myBL = getBeamline('ESRF_LB')
     #myBL = getBeamline('ESRF_NEW_OB')
 
-    myBL = getBeamline(label)
+    myBL = get_beamline(label)
 
     SIGMAX=myBL['ElectronBeamSizeH']
     SIGMAZ= myBL['ElectronBeamSizeV']
@@ -68,7 +68,7 @@ def run_source(label='ESRF_LB_OB',undulator='U20',photon_energy_ev=14200.0,\
         myBL['gapH'] =  myBL['d'] * 6.0 * src.SIGDIX
         myBL['gapV'] =  myBL['d'] * 6.0 * src.SIGDIZ
         myBL['ElectronEnergySpread'] = 0.001
-        eUrgent,fUrgent = calc1dUrgent(myBL, \
+        eUrgent,fUrgent = calc1d_urgent(myBL, \
             photonEnergyMin=10000.0,photonEnergyMax=18000.0,
             photonEnergyPoints=250,fileName=undulator+'.spec',fileAppend=False)
         #eSrw,fSrw = calc1dSrw(myBL, \
