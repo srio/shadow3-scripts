@@ -313,8 +313,8 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False):
         idv['PeriodID'] = 0.027
         idv['NPeriods'] = int(3.2/idv['PeriodID'])
         drift['distance'] = 27.0
-        slit['gapH'] = 0.0025 #0.001
-        slit['gapV'] = 0.0025 #0.001
+        slit['gapH'] = 0.0025
+        slit['gapV'] = 0.0025
 
     elif nameBeamline == "ID24_EBS":
         if silent == False:
@@ -331,8 +331,8 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False):
         idv['PeriodID'] = 0.027
         idv['NPeriods'] = int(3.2/idv['PeriodID'])
         drift['distance'] = 27.0
-        slit['gapH'] = 0.0025 #0.001
-        slit['gapV'] = 0.0025 #0.001
+        slit['gapH'] = 0.0025
+        slit['gapV'] = 0.0025
 
     elif nameBeamline == "ID24_NO_EMITTANCE":
         if silent == False:
@@ -2448,7 +2448,7 @@ def _srw_drift_electron_beam(eBeam, und ):
 # Comparison scripts
 #
 ########################################################################################################################
-def compare_flux(beamline="ESRF_HB",zero_emittance=False,fileName=None,iplot=0,emin=3000.0,emax=50000.0,npoints=200):
+def compare_flux(beamline="ESRF_HB",zero_emittance=False,fileName=None,include_pysru=True,iplot=0,emin=3000.0,emax=50000.0,npoints=200):
 
 
     bl = get_beamline(beamline,zero_emittance=zero_emittance)
@@ -2479,16 +2479,21 @@ def compare_flux(beamline="ESRF_HB",zero_emittance=False,fileName=None,iplot=0,e
     e_us,f_us = calc1d_us(bl,photonEnergyMin=emin,photonEnergyMax=emax,
           photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
-    e_py,f_py = calc1d_pysru(bl,photonEnergyMin=emin,photonEnergyMax=emax,npoints_grid=PYSRU_MESH_SIZE,
-          photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+    if include_pysru:
+        e_py,f_py = calc1d_pysru(bl,photonEnergyMin=emin,photonEnergyMax=emax,npoints_grid=PYSRU_MESH_SIZE,
+              photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
 
     if iplot:
-        plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline,show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=True)
-        plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline,show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=False)
+        if include_pysru:
+            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline,show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=True)
+            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,e_py,f_py,title=beamline,show=0,legend=["SRW","URGENT","US",'pySRU'],ylog=False)
 
-        plot(e_s,f_s,e_py,f_py,title=beamline,show=0,legend=["SRW",'pySRU'],ylog=True)
-        plot(e_s,f_s,e_py,f_py,title=beamline,show=0,legend=["SRW",'pySRU'],ylog=False)
+            plot(e_s,f_s,e_py,f_py,title=beamline,show=0,legend=["SRW",'pySRU'],ylog=True)
+            plot(e_s,f_s,e_py,f_py,title=beamline,show=0,legend=["SRW",'pySRU'],ylog=False)
+        else:
+            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline,show=0,legend=["SRW","URGENT","US"],ylog=True)
+            plot(e_s,f_s,e_ur,f_ur,e_us,f_us,title=beamline,show=0,legend=["SRW","URGENT","US"],ylog=False)
 
 
 def compare_flux_from_3d(beamline="ESRF_HB",zero_emittance=False,fileName=None,iplot=0,emin=3000.0,emax=50000.0,npoints=200):
@@ -2726,13 +2731,20 @@ def calculate_beamline_3d(beamline_name,photonEnergyMin=6500,photonEnergyMax=750
         numpy.save("%s"%beamline_name,[e,h,v,i])
 
 def plot_from_file(beamline_name):
-    e,h,v,i = load_from_file(beamline_name)
+    e,h,v,i = numpy.load("%s.npy"%beamline_name)
     from srxraylib.plot.gol import plot_image
     for ie in range(e.size):
         plot_image(i[ie],h,v)
 
-def load_from_file(beamline_name):
-    return numpy.load("%s.npy"%beamline_name)
+def plot_H_from_file(beamline_name):
+    e,h,v,i = numpy.load("%s.npy"%beamline_name)
+    from srxraylib.plot.gol import plot_image, plot_surface, plot
+    tmp = i.sum(axis=2)
+    print(">>>",i.shape,tmp.shape)
+    plot_image(tmp,e,h,aspect='auto',cmap='Greys_r',xtitle='Photon energy (eV)',ytitle='Horizontal position (mm)',title=beamline_name,show=False)
+    plot(e,tmp.sum(axis=1),xtitle='Photon energy (eV)',ytitle='Intensity',title=beamline_name)
+
+
 
 ########################################################################################################################
 #
@@ -2811,12 +2823,21 @@ if __name__ == '__main__':
     # ID24
     #
 
-    # calculate_beamline_3d("ID24",             photonEnergyMin=6500,photonEnergyMax=7500,photonEnergyPoints=201,zero_emittance=False)
-    # calculate_beamline_3d("ID24_EBS",         photonEnergyMin=6500,photonEnergyMax=7500,photonEnergyPoints=201,zero_emittance=False)
-    # calculate_beamline_3d("ID24_NO_EMITTANCE",photonEnergyMin=6500,photonEnergyMax=7500,photonEnergyPoints=201,zero_emittance=True)
+    # calculate_beamline_3d("ID24",             photonEnergyMin=6500,photonEnergyMax=8000,photonEnergyPoints=501,zero_emittance=False)
+    # calculate_beamline_3d("ID24_EBS",         photonEnergyMin=6500,photonEnergyMax=8000,photonEnergyPoints=501,zero_emittance=False)
+    # calculate_beamline_3d("ID24_NO_EMITTANCE",photonEnergyMin=6500,photonEnergyMax=8000,photonEnergyPoints=501,zero_emittance=True)
+    # calculate_beamline_3d("ID24_U32",             photonEnergyMin=6500,photonEnergyMax=8000,photonEnergyPoints=501,zero_emittance=False)
+    # calculate_beamline_3d("ID24_EBS_U32",         photonEnergyMin=6500,photonEnergyMax=8000,photonEnergyPoints=501,zero_emittance=False)
 
-    plot_from_file("ID24")
+    # plot_from_file("ID24")
     # plot_from_file("ID24_EBS")
     # plot_from_file("ID24_NO_EMITTANCE")
+    # plot_from_file("ID24_U32")
+    # plot_from_file("ID24_U32")
+    # plot_from_file("ID24_EBS_U32")
 
-    if iplot: plot_show()
+    # plot_H_from_file("ID24_EBS")
+    #
+    # compare_flux("ID24_EBS",emin=3000,emax=15000,include_pysru=False,zero_emittance=False,iplot=True)
+
+    # if iplot: plot_show()
