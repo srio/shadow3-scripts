@@ -165,7 +165,7 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False):
 
 
 
-    elif nameBeamline == "ESRF_NEW_OB":
+    elif nameBeamline == "EBS_OB":
         if silent == False:
             print("Setting inputs for ESRF New Lattice")
 
@@ -308,6 +308,25 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False):
         drift['distance'] = 27.0
         slit['gapH'] = 0.0025 #0.001
         slit['gapV'] = 0.0025 #0.001
+
+    elif nameBeamline == "ID21":
+        if silent == False:
+            print("Setting inputs for ESRF ID21/current")
+
+        ebeam['ElectronBeamDivergenceH'] = 0.000107
+        ebeam['ElectronBeamDivergenceV'] = 1.16e-06
+        ebeam['ElectronBeamSizeH'] = 4.99e-05
+        ebeam['ElectronBeamSizeV'] = 3.45e-06
+        ebeam['ElectronEnergySpread'] = 0.001
+        ebeam['ElectronCurrent'] = 0.2
+        ebeam['ElectronEnergy'] = 6.037
+        idv['Kv'] = 2.14
+        idv['PeriodID'] = 0.042
+        idv['NPeriods'] = 37
+        drift['distance'] = 26.0
+        slit['gapH'] = 0.002
+        slit['gapV'] = 0.002
+
     else:
         raise Exception("This name (%s) does not correspond at any name for a beamline"%nameBeamline)
 
@@ -580,7 +599,7 @@ if __name__ == '__main__':
         f.close()
 
 
-    beamline_names = ["ELETTRA"] # "XRAY_BOOKLET","ID16_NA","ESRF_NEW_OB","SHADOW_DEFAULT"]
+    beamline_names = ["ID21"] # "XRAY_BOOKLET","ID16_NA","ESRF_NEW_OB","SHADOW_DEFAULT"]
 
     #
     # Info
@@ -592,8 +611,8 @@ if __name__ == '__main__':
     # Radiance
     #
 
-    for beamline_name in beamline_names:
-        compare_radiation(get_beamline(beamline_name,zero_emittance=zero_emittance),     energy=None,zero_emittance=zero_emittance,iplot=True,show=True)
+    # for beamline_name in beamline_names:
+    #     compare_radiation(get_beamline(beamline_name,zero_emittance=zero_emittance),     energy=None,zero_emittance=zero_emittance,iplot=True,show=True)
 
 
     #
@@ -612,16 +631,16 @@ if __name__ == '__main__':
 
     # compare_flux_from_3d("ESRF_NEW_OB",emin=6500,emax=9500,npoints=200,zero_emittance=zero_emittance,iplot=iplot)
 
-    compare_flux(get_beamline("ELETTRA"  ),emin=100, emax=2000,  npoints=200,zero_emittance=zero_emittance,include_pysru=include_pysru,iplot=iplot)
+    compare_flux(get_beamline("ID21"  ),emin=1000, emax=50000,  npoints=200,zero_emittance=zero_emittance,include_pysru=include_pysru,iplot=iplot)
 
 
     #
     # Power density
     #
-    # compare_power_density(get_beamline("ESRF_NEW_OB"    ),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
+    # compare_power_density(get_beamline("ID21"    ),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
 
     # compare_power_density(get_beamline("SHADOW_DEFAULT" ),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
     # compare_power_density(get_beamline("XRAY_BOOKLET"   ),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
     # compare_power_density(get_beamline("ID16_NA"        ),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
 
-    compare_power_density(get_beamline("ELETTRA"),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
+    # compare_power_density(get_beamline("EBS_OB"),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)

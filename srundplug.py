@@ -2193,13 +2193,15 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,include_py
             plot_show()
 
 
-def compare_power_density(beamline,npoints_grid=21,include_pysru=True,
+def compare_power_density(beamline,npoints_grid=40,include_pysru=True,
                           zero_emittance=False,fileName=None,iplot=False,show=True):
 
 
     h_ur,v_ur,p_ur = calc2d_urgent(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
     h_us,v_us,p_us =     calc2d_us(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
+    print("Total power US: ",p_us.sum()*(h_us[1]-h_us[0])*(v_us[1]-v_us[0]))
+    print("Total power URGENT: ",p_ur.sum()*(h_ur[1]-h_ur[0])*(v_ur[1]-v_ur[0]))
     if SRWLIB_AVAILABLE:
         h_s,v_s,p_s = calc2d_srw(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
 
@@ -2295,6 +2297,7 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
 
         if show:
             plot_show()
+
 
 
 def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
