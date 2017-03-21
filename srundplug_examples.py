@@ -1,14 +1,14 @@
-
-
-try:
-    from orangecontrib.xoppy.util import srundplug
-    from srundplug import compare_radiation, compare_flux, compare_power_density
-except:
-    from srundplug import compare_radiation, compare_flux, compare_power_density
-
 __author__    = "Manuel Sanchez del Rio"
 __contact__   = "srio@esrf.eu"
 __copyright__ = "ESRF, 2014-2017"
+
+
+# try:
+#     raise Exception("use local srundplug")
+#     from orangecontrib.xoppy.util import srundplug
+# except:
+import srundplug
+
 
 import numpy
 from collections import OrderedDict
@@ -19,6 +19,7 @@ try:
     from io import StringIO  # Python3
 except ImportError:
     from StringIO import StringIO  # Python2
+
 
 ########################################################################################################################
 #
@@ -469,6 +470,34 @@ def beamline_info(bl,photonEnergy=None,distance=None,silent=False):
 
     return  result_string
 
+def calculate_power(bl):
+    for key in ["calc1d_us","calc1d_urgent","calc1d_pysru","calc1d_srw"]:
+        if key in bl.keys():
+            e = bl[key]["energy"]
+            f = bl[key]["flux"]
+            print(">>>>    Power from integral of spectrum (%s): %f W"%(key,f.sum()*1e3*codata.e*(e[1]-e[0])))
+
+    for key in ["calc2d_us","calc2d_urgent","calc2d_pysru","calc2d_srw"]:
+        if key in bl.keys():
+            h = bl[key]["h"]
+            v = bl[key]["v"]
+            p = bl[key]["p"]
+            print(">>>>    Power from power density calculations (%s): %f W"%(key,p.sum()*(h[1]-h[0])*(v[1]-v[0])))
+
+    for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
+        if key in bl.keys():
+            h = bl[key]["h"]
+            v = bl[key]["v"]
+            e = bl[key]["e"]
+            f = bl[key]["f"]
+            if e.size == 1:
+                e_step = 1.0
+                txt = "/eV"
+            else:
+                e_step = e[1] - e[0]
+                txt = ""
+            print(">>>>    Power from integral of 3D-volume (energy,h,v) (%s): %f W%s"%
+                  (key,f.sum()*1e3*codata.e*e_step*(h[1]-h[0])*(v[1]-v[0]),txt))
 
 #
 #
@@ -585,7 +614,9 @@ if __name__ == '__main__':
 
     zero_emittance = False
     iplot = True
-    include_pysru = False # otherwise flux and power_density are extremely slow
+
+
+
     #
     # open spec file
     #
@@ -600,19 +631,16 @@ if __name__ == '__main__':
 
 
     beamline_names = ["ID21"] # "XRAY_BOOKLET","ID16_NA","ESRF_NEW_OB","SHADOW_DEFAULT"]
+    bl = get_beamline("ID21")
+    print(bl)
+
 
     #
     # Info
     #
 
-    for beamline_name in beamline_names:
-        print(beamline_info(get_beamline(beamline_name,zero_emittance=zero_emittance),distance=20.0))
-    #
-    # Radiance
-    #
-
     # for beamline_name in beamline_names:
-    #     compare_radiation(get_beamline(beamline_name,zero_emittance=zero_emittance),     energy=None,zero_emittance=zero_emittance,iplot=True,show=True)
+    #     print(beamline_info(get_beamline(beamline_name,zero_emittance=zero_emittance),distance=26.0))
 
 
     #
@@ -620,27 +648,60 @@ if __name__ == '__main__':
     #
 
 
-    # compare_flux(get_beamline("XRAY_BOOKLET"  ),emin=100, emax=900,  npoints=200,zero_emittance=True,          include_pysru=include_pysru,iplot=iplot)
+    srundplug.USE_SRWLIB = True
+
+    # compare_flux(get_beamline("XRAY_BOOKLET"  ),emin=100, emax=900,  npoints=200,zero_emittance=True,iplot=iplot)
 
     # this is quite slow
     #  compare_flux(get_beamline("ID16_NA"       ),emin=3000,emax=20000,npoints=100,zero_emittance=zero_emittance,
-    #              include_pysru=include_pysru,iplot=iplot,srw_max_harmonic_number=61)
+    #              iplot=iplot,srw_max_harmonic_number=61)
 
-    # compare_flux(get_beamline("ESRF_NEW_OB"   ),emin=6500,emax=9500, npoints=200,zero_emittance=zero_emittance,include_pysru=include_pysru,iplot=iplot)
-    # compare_flux(get_beamline("SHADOW_DEFAULT"),emin=3000,emax=50000,npoints=200,zero_emittance=zero_emittance,include_pysru=include_pysru,iplot=iplot)
-
+    # compare_flux(get_beamline("ESRF_NEW_OB"   ),emin=6500,emax=9500, npoints=200,zero_emittance=zero_emittance,iplot=iplot)
+    # compare_flux(get_beamline("SHADOW_DEFAULT"),emin=3000,emax=50000,npoints=200,zero_emittance=zero_emittance,iplot=iplot)
     # compare_flux_from_3d("ESRF_NEW_OB",emin=6500,emax=9500,npoints=200,zero_emittance=zero_emittance,iplot=iplot)
 
-    compare_flux(get_beamline("ID21"  ),emin=1000, emax=50000,  npoints=200,zero_emittance=zero_emittance,include_pysru=include_pysru,iplot=iplot)
+
+
+    bl = srundplug.compare_flux(bl,emin=1000, emax=100000,  npoints=500,zero_emittance=zero_emittance)
+    if iplot: srundplug.compare_flux_plot(bl)
+
 
 
     #
     # Power density
     #
-    # compare_power_density(get_beamline("ID21"    ),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
+    # compare_power_density(get_beamline("ID21"    ),zero_emittance=zero_emittance,iplot=iplot)
+    # compare_power_density(get_beamline("SHADOW_DEFAULT" ),zero_emittance=zero_emittance,iplot=iplot)
+    # compare_power_density(get_beamline("XRAY_BOOKLET"   ),zero_emittance=zero_emittance,iplot=iplot)
+    # compare_power_density(get_beamline("ID16_NA"        ),zero_emittance=zero_emittance,iplot=iplot)
+    # compare_power_density(get_beamline("EBS_OB"),zero_emittance=zero_emittance,iplot=iplot)
 
-    # compare_power_density(get_beamline("SHADOW_DEFAULT" ),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
-    # compare_power_density(get_beamline("XRAY_BOOKLET"   ),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
-    # compare_power_density(get_beamline("ID16_NA"        ),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
+    bl = srundplug.compare_power_density(bl,zero_emittance=zero_emittance)
+    if iplot: srundplug.compare_power_density_plot(bl)
 
-    # compare_power_density(get_beamline("EBS_OB"),include_pysru=include_pysru,zero_emittance=zero_emittance,iplot=iplot)
+    #
+    # Radiance
+    #
+
+    # for beamline_name in beamline_names:
+    #     compare_radiation(get_beamline(beamline_name,zero_emittance=zero_emittance),     energy=None,zero_emittance=zero_emittance,iplot=True,show=True)
+    srundplug.USE_PYSRU = True
+    # bl = srundplug.compare_radiation(bl,energy=None,zero_emittance=zero_emittance,iplot=True,show=True)
+    #if iplot: srundplug.compare_radiation_plot(bl,show=True)
+
+
+
+
+
+
+    #
+    # dump file
+    #
+    numpy.save(bl["name"],bl)
+
+    read_dictionary = numpy.load('ID21.npy').item()
+    print(read_dictionary.keys())
+    calculate_power(read_dictionary)
+    # srundplug.compare_radiation_plot(read_dictionary,show=True)
+
+
