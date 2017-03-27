@@ -53,8 +53,12 @@ if USE_SRWLIB:
     try:
         import srwlib
     except:
-        USE_SRWLIB = False
-        print("SRWLIB is not available")
+        try:
+            import wpg.srwlib as srwlib
+        except:
+            USE_SRWLIB = False
+            print("SRW is not available")
+
 
 #catch standard optput
 try:
@@ -105,7 +109,7 @@ except:
 
 #check
 if os.path.isfile(home_bin + 'us') == False:
-    print("srundplug: File not found: "+home_bin+'us')
+    raise FileNotFoundError("srundplug: File not found: "+home_bin+'us')
 if os.path.isfile(home_bin + 'urgent') == False:
     raise FileNotFoundError("srundplug: File not found: " + home_bin + 'urgent')
 
@@ -229,9 +233,9 @@ def calc1d_pysru(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
         f.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     return (eArray,intensArray)
 
@@ -336,7 +340,7 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
 
     srwlib.srwl.CalcStokesUR(stkF, eBeam, und, arPrecF)
 
-    print('Done calc1dSrw calculation in sec '+str(time.time()-t0))
+    print('Done calc1dSrw calculation in %10.3f s'%(time.time()-t0))
     #**********************Saving results
 
     if fileName is not None:
@@ -357,7 +361,6 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
         f.write("#UD photonEnergyMax =  %f\n"%(photonEnergyMax))
         f.write("#UD photonEnergyPoints =  %d\n"%(photonEnergyPoints))
         f.write("#UD B0 =  %f\n"%(B0))
-        f.write("#UD Contributing harmonics up to %d\n"%(Nmax))
 
         #
         # write flux to file
@@ -379,9 +382,9 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
         f.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
 
     return (eArray,intensArray) 
@@ -449,13 +452,8 @@ def calc1d_urgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnerg
 
     command = os.path.join(home_bin,'urgent < urgent.inp')
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
-    print("\n--------------------------------------------------------\n")
     os.system(command)
-    print("Done.")
-    print("\n--------------------------------------------------------\n")
-
-    print('Done calc1dUrgent calculation in sec '+str(time.time()-t0))
-
+    print('Done calc1dUrgent calculation in %10.3f s'%(time.time()-t0))
     # write spec file
     txt = open("urgent.out").readlines()
     if fileName is not None:
@@ -493,9 +491,9 @@ def calc1d_urgent(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnerg
         f.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # stores results in numpy arrays for return
     eArray = numpy.zeros(nArray)
@@ -559,12 +557,9 @@ def calc1d_us(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoi
 
     command = os.path.join(home_bin,'us')
     print("Running command '%s' in directory: %s \n"%(command,os.getcwd()))
-    print("\n--------------------------------------------------------\n")
     os.system(command)
-    print("Done.")
-    print("\n--------------------------------------------------------\n")
+    print('Done calc1dUs calculation in %10.3f s'%(time.time()-t0))
 
-    print('Done calc1dUs calculation in sec '+str(time.time()-t0))
     txt = open("us.out").readlines()
     # write spec file
     if fileName is not None:
@@ -603,9 +598,9 @@ def calc1d_us(bl,photonEnergyMin=1000.0,photonEnergyMax=100000.0,photonEnergyPoi
     if fileName is not None:
         f.close()
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # stores results in numpy arrays for return
     eArray = numpy.zeros(nArray)
@@ -832,9 +827,9 @@ def calc2d_srw(bl,zero_emittance=False,hSlitPoints=101,vSlitPoints=51,srw_max_ha
         f.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     print( "Total power SRW [W]: "+repr(totPower))
 
@@ -990,12 +985,10 @@ def calc2d_us(bl,zero_emittance=False,hSlitPoints=51,vSlitPoints=51,fileName=Non
         f.close()
 
 
-
-        #os.chdir(pwd)
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     print( "Total power US [W]: "+repr(totPower))
     return (hhh, vvv, int_mesh2)
@@ -1163,13 +1156,10 @@ def calc2d_urgent(bl,zero_emittance=False,fileName=None,fileAppend=False,hSlitPo
 
         f.close()
 
-
-
-        #os.chdir(pwd)
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     print( "Total power URGENT [W]: "+repr(totPower))
     print("\n--------------------------------------------------------\n\n")
@@ -1376,9 +1366,9 @@ def calc3d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
 
         fout.close()
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # grid in mm
     return (eArray, 1e3*hArray, 1e3*vArray, intensArray)
@@ -1589,9 +1579,9 @@ def calc3d_urgent(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergy
         fout.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     print("\n--------------------------------------------------------\n\n")
     # append direct calculation for comparison
@@ -1792,9 +1782,9 @@ def calc3d_us(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoin
         fout.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # append direct calculation for comparison
     tmp = calc1d_us(bl,photonEnergyMin=photonEnergyMin,
@@ -1939,9 +1929,9 @@ def calc3d_pysru(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
         fout.close()
 
         if fileAppend:
-            print("Data appended to file: "+fileName)
+            print("Data appended to file: %s"%(os.path.join(os.getcwd(),fileName)))
         else:
-            print("File written to disk: "+fileName)
+            print("File written to disk: %s"%(os.path.join(os.getcwd(),fileName)))
 
     # append direct calculation for comparison
     # tmp = calc1d_us(bl,photonEnergyMin=photonEnergyMin,
@@ -2087,8 +2077,6 @@ def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,
     data = []
     legend = []
 
-    srw_max_harmonic_number = int(emax / resonance_energy * 1.11)
-
     if USE_SRWLIB:
         e_s,f_s = calc1d_srw(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
               photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True,
@@ -2213,33 +2201,83 @@ def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,
             plot_show()
 
 
-def compare_power_density(beamline,npoints_grid=40,zero_emittance=False,fileName=None):
+def compare_power_density(beamline,npoints_grid=40,zero_emittance=False,fileName=None,post_convolution=False):
+
+    if post_convolution:
+        zero_emittance = True
+        from scipy.ndimage.filters import convolve as convolve
+        from scipy.ndimage.filters import gaussian_filter1d as gaussian_filter1d
+        SigmaH = numpy.sqrt( beamline['ElectronBeamSizeH']**2 + (beamline['distance']*beamline['ElectronBeamDivergenceH'])**2 )
+        SigmaV = numpy.sqrt( beamline['ElectronBeamSizeV']**2 + (beamline['distance']*beamline['ElectronBeamDivergenceV'])**2 )
+
+        # H = numpy.outer(h,numpy.ones_like(v))
+        # V = numpy.outer(numpy.ones_like(h),v)
+        # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+        # p = convolve(p,tmp1)/tmp1.sum()
+
 
 
 
     if USE_US:
-        h_us,v_us,p_us =     calc2d_us(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-        print("Total power US: ",p_us.sum()*(h_us[1]-h_us[0])*(v_us[1]-v_us[0]))
-        beamline["calc2d_us"] = {"h":h_us,"v":v_us,"p":p_us}
+        h, v, p =     calc2d_us(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        if post_convolution:
+            p1 = gaussian_filter1d(p ,SigmaH/(h[1]-h[0]),axis=0)
+            p  = gaussian_filter1d(p1,SigmaV/(v[1]-v[0]),axis=1)
+
+            # H = numpy.outer(h,numpy.ones_like(v))
+            # V = numpy.outer(numpy.ones_like(h),v)
+            # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+            # p = convolve(p,tmp1)/tmp1.sum()
+
+        print("Total power US: ",p.sum()*(h[1]-h[0])*(v[1]-v[0]))
+        beamline["calc2d_us"] = {"h":h,"v":v,"p":p}
 
     if USE_URGENT:
-        h_ur,v_ur,p_ur = calc2d_urgent(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-        print("Total power URGENT: ",p_ur.sum()*(h_ur[1]-h_ur[0])*(v_ur[1]-v_ur[0]))
-        beamline["calc2d_urgent"] = {"h":h_ur,"v":v_ur,"p":p_ur}
+        h, v, p = calc2d_urgent(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        if post_convolution:
+            p1 = gaussian_filter1d(p ,SigmaH/(h[1]-h[0]),axis=0,mode='mirror')
+            p  = gaussian_filter1d(p1,SigmaV/(v[1]-v[0]),axis=1,mode='mirror')
+
+            # H = numpy.outer(h,numpy.ones_like(v))
+            # V = numpy.outer(numpy.ones_like(h),v)
+            # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+            # p = convolve(p,tmp1)/tmp1.sum()
+        print("Total power URGENT: ",p.sum()*(h[1]-h[0])*(v[1]-v[0]))
+        beamline["calc2d_urgent"] = {"h":h,"v":v,"p":p}
 
     if USE_SRWLIB:
-        h_s,v_s,p_s = calc2d_srw(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-        print("Total power SRW: ",p_s.sum()*(h_s[1]-h_s[0])*(v_s[1]-v_s[0]))
-        beamline["calc2d_srw"] = {"h":h_s,"v":v_s,"p":p_s}
+        h, v, p = calc2d_srw(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        if post_convolution:
+            p1 = gaussian_filter1d(p ,SigmaH/(h[1]-h[0]),axis=0)
+            p  = gaussian_filter1d(p1,SigmaV/(v[1]-v[0]),axis=1)
+
+
+            # H = numpy.outer(h,numpy.ones_like(v))
+            # V = numpy.outer(numpy.ones_like(h),v)
+            # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+            # p = convolve(p,tmp1)/tmp1.sum()
+        print("Total power SRW: ",p.sum()*(h[1]-h[0])*(v[1]-v[0]))
+        beamline["calc2d_srw"] = {"h":h,"v":v,"p":p}
 
     if USE_PYSRU:
-        h_py,v_py,p_py = calc2d_pysru(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
-        print("Total power pySRU: ",p_py.sum()*(h_py[1]-h_py[0])*(v_py[1]-v_py[0]))
-        beamline["calc2d_pysru"] = {"h":h_py,"v":v_py,"p":p_py}
+        h, v, p = calc2d_pysru(beamline,hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
+        if post_convolution:
+            p1 = gaussian_filter1d(p ,SigmaH/(h[1]-h[0]),axis=0)
+            p  = gaussian_filter1d(p1,SigmaV/(v[1]-v[0]),axis=1)
 
+            # H = numpy.outer(h,numpy.ones_like(v))
+            # V = numpy.outer(numpy.ones_like(h),v)
+            # tmp1 = numpy.exp(-H*H/2/SigmaH/SigmaH) * numpy.exp(-V*V/2/SigmaV/SigmaV)
+            # p = convolve(p,tmp1)/tmp1.sum()
+
+        print("Total power pySRU: ",p.sum()*(h[1]-h[0])*(v[1]-v[0]))
+        beamline["calc2d_pysru"] = {"h":h,"v":v,"p":p}
+
+    if post_convolution:
+        print("Post-convolution with sigmaH: %f mm, sigmaV: %f mm"%(1e3*SigmaH,1e3*SigmaV))
     return beamline
 
-def compare_power_density_plot(beamline_dict,show=True):
+def compare_power_density_plot(beamline_dict,show=True,contour=True,surface=True):
 
 
     cmax = -100000.0
@@ -2258,18 +2296,16 @@ def compare_power_density_plot(beamline_dict,show=True):
             v = beamline_dict[key]["v"]
             p = beamline_dict[key]["p"]
 
-            plot_contour(p,h,v,title="%s %s"%(beamline_dict['name'],key),
+            if contour: plot_contour(p,h,v,title="%s %s"%(beamline_dict['name'],key),
                          xtitle="H [mm]",ytitle="V [mm]",plot_points=0,
                          contour_levels=contour_levels,cmap=None,cbar=1,cbar_title="Power density [$W/mm^2$]",show=0)
-            plot_surface(p,h,v,title="%s %s"%(beamline_dict['name'],key),xtitle="H [mm]",ytitle="V [mm]",show=0)
+            if surface: plot_surface(p,h,v,title="%s %s"%(beamline_dict['name'],key),xtitle="H [mm]",ytitle="V [mm]",show=0)
 
     if show:
         plot_show()
 
-def compare_radiation(beamline,
-                      photonEnergyMin=None,photonEnergyMax=None,photonEnergyPoints=1,
-                      npoints_grid=51,
-                      zero_emittance=False,fileName=None,iplot=False,show=True):
+def compare_radiation(beamline,energy=None,npoints_grid=51,
+                      zero_emittance=False,fileName=None):
 
 
 
@@ -2282,15 +2318,12 @@ def compare_radiation(beamline,
     print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
     print ("Resonance energy [eV]: %g \n"%(resonance_energy))
 
-    if photonEnergyMin == None:
-        photonEnergyMin = resonance_energy
-        photonEnergyMax = photonEnergyMin + 1
-        photonEnergyPoints = 1
+    if energy == None:
+        energy = resonance_energy
 
 
     if USE_SRWLIB:
-        e,h,v,f = calc3d_srw(beamline,
-                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
+        e,h,v,f = calc3d_srw(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_srw"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2298,8 +2331,7 @@ def compare_radiation(beamline,
         print("Integral for SRW   :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
     if USE_PYSRU:
-        e,h,v,f = calc3d_pysru(beamline,
-                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
+        e,h,v,f = calc3d_pysru(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_pysru"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2307,8 +2339,7 @@ def compare_radiation(beamline,
         print("Integral for pySRU :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
     if USE_URGENT:
-        e,h,v,f = calc3d_urgent(beamline,
-                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
+        e,h,v,f = calc3d_urgent(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_urgent"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2316,8 +2347,7 @@ def compare_radiation(beamline,
         print("Integral for URGENT :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
     if USE_US:
-        e,h,v,f = calc3d_us(beamline,
-                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
+        e,h,v,f = calc3d_us(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_us"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2371,6 +2401,7 @@ def compare_radiation_plot(beamline_dict,show=True):
     if show:
         plot_show()
 
+
 def calculate_power(bl):
     for key in ["calc1d_us","calc1d_urgent","calc1d_pysru","calc1d_srw"]:
         if key in bl.keys():
@@ -2399,6 +2430,8 @@ def calculate_power(bl):
                 txt = ""
             print(">>>>    Power from integral of 3D-volume (energy,h,v) (%s): %f W%s"%
                   (key,f.sum()*1e3*codata.e*e_step*(h[1]-h[0])*(v[1]-v[0]),txt))
+
+
 
 def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
 
