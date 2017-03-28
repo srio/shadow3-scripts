@@ -160,7 +160,7 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False):
         ebeam['ElectronCurrent'] = 0.4
         ebeam['ElectronEnergy'] = 2.0
         idv['Kv'] = 2.3
-        idv['PeriodID'] = 0.025
+        idv['PeriodID'] = 0.01 # 0.025
         idv['NPeriods'] = int(1.5/idv['PeriodID'])
         drift['distance'] = 27.0
         slit['gapH'] = 0.0025 #0.001
@@ -347,7 +347,7 @@ if __name__ == '__main__':
     # Flux
     #
 
-    compare_flux(get_beamline("ELETTRA"  ),emin=100, emax=2000,  npoints=200,zero_emittance=zero_emittance,include_pysru=include_pysru,iplot=iplot)
+    compare_flux(get_beamline("ELETTRA"  ),emin=100, emax=2000,  npoints=200,zero_emittance=zero_emittance, USE_PYSRU=include_pysru,iplot=iplot)
 
 
     #

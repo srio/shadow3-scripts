@@ -2358,7 +2358,7 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
 
     return beamline
 
-def compare_radiation_plot(beamline_dict,show=True):
+def compare_radiation_plot(beamline_dict,stack=True,show=True):
 
     cmax = -100000.0
     for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
@@ -2368,6 +2368,13 @@ def compare_radiation_plot(beamline_dict,show=True):
 
     contour_levels = numpy.linspace(0,cmax,20)
 
+    # silx stackView
+    if stack == True:
+        from silx.gui import qt
+        from silx.gui.plot.StackView import StackViewMainWindow
+        app = qt.QApplication(sys.argv[1:])
+
+        SV = []
     for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
         if key in beamline_dict.keys():
             h = beamline_dict[key]["h"]
@@ -2375,31 +2382,28 @@ def compare_radiation_plot(beamline_dict,show=True):
             e = beamline_dict[key]["e"]
             f = beamline_dict[key]["f"]
 
-            plot_contour(f[e.size/2],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[e.size/2]),
-                         xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,
-                         cmap=None,cbar=1,cbar_title="Flux ",show=False)
+            if stack:
+                sv = StackViewMainWindow()
+                SV.append(sv)
+                sv.setColormap("jet", autoscale=True)
+                sv.setStack(f)
+                sv.setGraphTitle(key)
+                sv.setKeepDataAspectRatio(True)
+                sv.setLabels(["E: %10.3f to %10.3f eV (%d points)"%(e.min(),e.max(),e.size),
+                              "H: %5.1f to %5.1f mm (%d points)"%(h.min(),h.max(),h.size),
+                              "V: %5.1f to %5.1f mm (%d points)"%(v.min(),v.max(),v.size)])
+                sv.show()
+            else:
+                plot_contour(f[int(e.size/2),:,:],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[int(e.size/2)]),
+                             xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,
+                             cmap=None,cbar=1,cbar_title="Flux ",show=False)
 
-            plot_surface(f[e.size/2],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[e.size/2]),
-                         xtitle="H [mm]",ytitle="V [mm]",show=False)
+                plot_surface(f[int(e.size/2),:,:],h,v,title="%s %s; E=%g eV"%(beamline_dict['name'],key,e[int(e.size/2)]),
+                             xtitle="H [mm]",ytitle="V [mm]",show=False)
 
-    # if USE_SRWLIB:
-    #
-    # else:
-    #     contour_levels = numpy.linspace(0,f_py.max(),20)
-    #
-    # if USE_SRWLIB:
-    #     plot_contour(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",plot_points=0,contour_levels=contour_levels,cmap=None,
-    #                  cbar=1,cbar_title="Flux ",show=False)
-    #
-    # plot_contour(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",
-    #          plot_points=0,contour_levels=contour_levels,cmap=None,
-    #          cbar=1,cbar_title="Flux ",show=False)
-    #
-    # if USE_SRWLIB: plot_surface(f_s[e_s.size/2],h_s,v_s,title="%s SRW; E=%g eV"%(beamline['name'],e_s[e_s.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
-    # plot_surface(f_py[e_py.size/2],h_py,v_py,title="%s pySRU; E=%g eV"%(beamline['name'],e_py[e_py.size/2]),xtitle="H [mm]",ytitle="V [mm]",show=False)
+    if stack: app.exec_()
 
-    if show:
-        plot_show()
+    if show: plot_show()
 
 
 def calculate_power(bl):

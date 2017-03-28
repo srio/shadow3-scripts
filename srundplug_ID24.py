@@ -168,8 +168,9 @@ def plot_H_from_file(beamline_name,path="/scisoft/xop2.4/extensions/shadowvui/sh
     e,h,v,i = numpy.load(filename)
 
     print("Shapes: e,h,v,i",e.shape,h.shape,v.shape,i.shape)
-    tmp = i.sum(axis=2)
-    plot_image(tmp,e,h,aspect='auto',cmap='Greys_r',xtitle='Photon energy (eV)',ytitle='Horizontal position (mm)',title=beamline_name,show=show)
+    tmp = i.sum(axis=2) * 2.5/101 # TODO: generalize
+    plot_image(tmp.T,h,e,aspect='auto',cmap='Greys_r',ytitle='Photon energy (eV)',xtitle='Horizontal position (mm)',
+               title=beamline_name+" Flux[photons/s/0.1bw/mm]",show=show)
 
     return e,h,v,i
 

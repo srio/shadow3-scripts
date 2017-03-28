@@ -331,12 +331,8 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False):
     else:
         raise Exception("This name (%s) does not correspond at any name for a beamline"%nameBeamline)
 
-    if zero_emittance:
-        ebeam['ElectronBeamDivergenceH'] = 1e-30
-        ebeam['ElectronBeamDivergenceV'] = 1e-30
-        ebeam['ElectronBeamSizeH']       = 1e-30
-        ebeam['ElectronBeamSizeV']       = 1e-30
-        ebeam['ElectronEnergySpread']    = 1e-30
+
+
 
 
 
@@ -350,11 +346,25 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False):
     bl.update(idv)
     bl.update(drift)
     bl.update(slit)
+
+    if zero_emittance:
+        bl = set_beamline_zero_emittance(bl)
+
     #if silent == False:
     #    print ("\n\n-----------------------------------------------------")
     #    for i,j in bl.items():
     #        print ("%s = %s" % (i,j) )
     #    print ("-----------------------------------------------------\n\n")
+    return bl
+
+def set_beamline_zero_emittance(bl):
+
+    bl['ElectronBeamDivergenceH'] = 1e-30
+    bl['ElectronBeamDivergenceV'] = 1e-30
+    bl['ElectronBeamSizeH']       = 1e-30
+    bl['ElectronBeamSizeV']       = 1e-30
+    bl['ElectronEnergySpread']    = 1e-30
+
     return bl
 
 def beamline_info(bl,photonEnergy=None,distance=None,silent=False):
@@ -470,34 +480,7 @@ def beamline_info(bl,photonEnergy=None,distance=None,silent=False):
 
     return  result_string
 
-def calculate_power(bl):
-    for key in ["calc1d_us","calc1d_urgent","calc1d_pysru","calc1d_srw"]:
-        if key in bl.keys():
-            e = bl[key]["energy"]
-            f = bl[key]["flux"]
-            print(">>>>    Power from integral of spectrum (%s): %f W"%(key,f.sum()*1e3*codata.e*(e[1]-e[0])))
 
-    for key in ["calc2d_us","calc2d_urgent","calc2d_pysru","calc2d_srw"]:
-        if key in bl.keys():
-            h = bl[key]["h"]
-            v = bl[key]["v"]
-            p = bl[key]["p"]
-            print(">>>>    Power from power density calculations (%s): %f W"%(key,p.sum()*(h[1]-h[0])*(v[1]-v[0])))
-
-    for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
-        if key in bl.keys():
-            h = bl[key]["h"]
-            v = bl[key]["v"]
-            e = bl[key]["e"]
-            f = bl[key]["f"]
-            if e.size == 1:
-                e_step = 1.0
-                txt = "/eV"
-            else:
-                e_step = e[1] - e[0]
-                txt = ""
-            print(">>>>    Power from integral of 3D-volume (energy,h,v) (%s): %f W%s"%
-                  (key,f.sum()*1e3*codata.e*e_step*(h[1]-h[0])*(v[1]-v[0]),txt))
 
 #
 #
@@ -612,7 +595,7 @@ def calculate_power(bl):
 
 if __name__ == '__main__':
 
-    zero_emittance = False
+    zero_emittance = True
     iplot = True
 
 
@@ -663,7 +646,7 @@ if __name__ == '__main__':
 
 
     bl = srundplug.compare_flux(bl,emin=1000, emax=100000,  npoints=500,zero_emittance=zero_emittance)
-    if iplot: srundplug.compare_flux_plot(bl)
+    # if iplot: srundplug.compare_flux_plot(bl)
 
 
 
@@ -677,7 +660,7 @@ if __name__ == '__main__':
     # compare_power_density(get_beamline("EBS_OB"),zero_emittance=zero_emittance,iplot=iplot)
 
     bl = srundplug.compare_power_density(bl,zero_emittance=zero_emittance)
-    if iplot: srundplug.compare_power_density_plot(bl)
+    # if iplot: srundplug.compare_power_density_plot(bl)
 
     #
     # Radiance
@@ -686,7 +669,9 @@ if __name__ == '__main__':
     # for beamline_name in beamline_names:
     #     compare_radiation(get_beamline(beamline_name,zero_emittance=zero_emittance),     energy=None,zero_emittance=zero_emittance,iplot=True,show=True)
     srundplug.USE_PYSRU = True
-    # bl = srundplug.compare_radiation(bl,energy=None,zero_emittance=zero_emittance,iplot=True,show=True)
+    bl = srundplug.compare_radiation(bl,
+                                     photonEnergyMin=1000,photonEnergyMax=100000,photonEnergyPoints=500,
+                                     zero_emittance=zero_emittance,iplot=True,show=True)
     #if iplot: srundplug.compare_radiation_plot(bl,show=True)
 
 
@@ -697,11 +682,12 @@ if __name__ == '__main__':
     #
     # dump file
     #
-    numpy.save(bl["name"],bl)
+    numpy.save("ID21noEmittance",bl)
 
-    read_dictionary = numpy.load('ID21.npy').item()
-    print(read_dictionary.keys())
-    calculate_power(read_dictionary)
+    # read_dictionary = numpy.load('ID21.npy').item()
+    # print(read_dictionary.keys())
+    # srundplug.calculate_power(read_dictionary)
+    # srundplug.compare_power_density_plot(read_dictionary,show=True)
     # srundplug.compare_radiation_plot(read_dictionary,show=True)
 
 

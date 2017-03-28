@@ -29,8 +29,8 @@ if __name__ == '__main__':
 
     read_dictionary = numpy.load('ID21noEmittance.npy').item()
     srundplug.calculate_power(read_dictionary)
-    srundplug.compare_flux_plot(read_dictionary,show=True)
-    # srundplug.compare_power_density_plot(read_dictionary,show=True)
+    # srundplug.compare_flux_plot(read_dictionary,show=True)
+    srundplug.compare_power_density_plot(read_dictionary,show=True)
     # srundplug.compare_radiation_plot(read_dictionary,show=True)
 
 
