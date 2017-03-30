@@ -242,7 +242,7 @@ def calc1d_pysru(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyP
 
 
 def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoints=500,zero_emittance=False,
-              srw_max_harmonic_number=21,fileName=None,fileAppend=False):
+              srw_max_harmonic_number=None,fileName=None,fileAppend=False):
 
     r"""
         run SRW for calculating flux
@@ -255,9 +255,7 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
 
     t0 = time.time()
     print("Inside calc1d_srw")
-    #Maximum number of harmonics considered. This is critical for speed. 
-    #TODO: set it automatically to a reasonable value (see how is done by Urgent).
-    Nmax = srw_max_harmonic_number # 21,61
+
     #derived
     #TODO calculate the numerical factor using codata
     #B0 = bl['Kv']/0.934/(bl['PeriodID']*1e2)
@@ -265,7 +263,19 @@ def calc1d_srw(bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEnergyPoi
     cte = codata.e/(2*numpy.pi*codata.electron_mass*codata.c)
     B0 = bl['Kv']/bl['PeriodID']/cte
 
-    
+
+    if srw_max_harmonic_number == None:
+        gamma = bl['ElectronEnergy'] / (codata_mee * 1e-3)
+
+        resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
+        resonance_energy = m2ev / resonance_wavelength
+
+        srw_max_harmonic_number = int(photonEnergyMax / resonance_energy * 1.1)
+        print ("Max harmonic considered:%d ; Resonance energy: %g eV\n"%(srw_max_harmonic_number,resonance_energy))
+
+
+    Nmax = srw_max_harmonic_number # 21,61
+
     print('Running SRW (SRWLIB Python)')
     
     #***********Undulator
@@ -2055,8 +2065,7 @@ def _srw_drift_electron_beam(eBeam, und ):
 #
 ########################################################################################################################
 def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,
-                 zero_emittance=False,fileName=None,
-                 srw_max_harmonic_number=21):
+                 zero_emittance=False,fileName=None,):
 
 
     gamma = beamline['ElectronEnergy'] / (codata_mee * 1e-3)
@@ -2080,7 +2089,7 @@ def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,
     if USE_SRWLIB:
         e_s,f_s = calc1d_srw(beamline,photonEnergyMin=emin,photonEnergyMax=emax,
               photonEnergyPoints=npoints,zero_emittance=zero_emittance,fileName=fileName,fileAppend=True,
-                             srw_max_harmonic_number=srw_max_harmonic_number)
+                             srw_max_harmonic_number=None)
         print("Power from integral of SRW spectrum: %f W"%(f_s.sum()*1e3*codata.e*(e_s[1]-e_s[0])))
         beamline["calc1d_srw"] = {"energy":e_s,"flux":f_s}
 

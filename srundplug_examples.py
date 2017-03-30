@@ -615,7 +615,6 @@ if __name__ == '__main__':
 
     beamline_names = ["ID21"] # "XRAY_BOOKLET","ID16_NA","ESRF_NEW_OB","SHADOW_DEFAULT"]
     bl = get_beamline("ID21")
-    print(bl)
 
 
     #
@@ -644,10 +643,24 @@ if __name__ == '__main__':
     # compare_flux_from_3d("ESRF_NEW_OB",emin=6500,emax=9500,npoints=200,zero_emittance=zero_emittance,iplot=iplot)
 
 
+    # TEST WIGGLER
+    beamline_names = ["EBS_OB"] # "XRAY_BOOKLET","ID16_NA","ESRF_NEW_OB","SHADOW_DEFAULT"]
+    bl = get_beamline("EBS_OB")
+    print(bl)
+    B0 = 1.0
+    bl['Kv'] = 4.
 
-    bl = srundplug.compare_flux(bl,emin=1000, emax=100000,  npoints=500,zero_emittance=zero_emittance)
-    # if iplot: srundplug.compare_flux_plot(bl)
+    srundplug.USE_URGENT = False
+    srundplug.USE_US = False
+    bl['PeriodID'] = bl['Kv'] / (93.36 * B0)
+    bl['NPeriods'] = int(1.0/bl['PeriodID'])
 
+    print(">>>>>> K: %f, Period: %f, N:%d "%(bl['Kv'],bl['PeriodID'],bl['NPeriods']))
+
+
+    bl = srundplug.compare_flux(bl,emin=1000, emax=100000,  npoints=1000,zero_emittance=zero_emittance)
+    if iplot: srundplug.compare_flux_plot(bl)
+    print("K: %f, Period: %f, N:%d "%(bl['Kv'],bl['PeriodID'],bl['NPeriods']))
 
 
     #
@@ -659,7 +672,7 @@ if __name__ == '__main__':
     # compare_power_density(get_beamline("ID16_NA"        ),zero_emittance=zero_emittance,iplot=iplot)
     # compare_power_density(get_beamline("EBS_OB"),zero_emittance=zero_emittance,iplot=iplot)
 
-    bl = srundplug.compare_power_density(bl,zero_emittance=zero_emittance)
+    # bl = srundplug.compare_power_density(bl,zero_emittance=zero_emittance)
     # if iplot: srundplug.compare_power_density_plot(bl)
 
     #
@@ -668,11 +681,13 @@ if __name__ == '__main__':
 
     # for beamline_name in beamline_names:
     #     compare_radiation(get_beamline(beamline_name,zero_emittance=zero_emittance),     energy=None,zero_emittance=zero_emittance,iplot=True,show=True)
-    srundplug.USE_PYSRU = True
-    bl = srundplug.compare_radiation(bl,
-                                     photonEnergyMin=1000,photonEnergyMax=100000,photonEnergyPoints=500,
-                                     zero_emittance=zero_emittance,iplot=True,show=True)
-    #if iplot: srundplug.compare_radiation_plot(bl,show=True)
+    # srundplug.USE_PYSRU = True
+    # bl = srundplug.compare_radiation(bl,
+    #                                  photonEnergyMin=1000,photonEnergyMax=100000,photonEnergyPoints=500,
+    #                                  zero_emittance=zero_emittance,iplot=True,show=True)
+
+
+    if iplot: srundplug.compare_radiation_plot(bl,show=True)
 
 
 
@@ -681,8 +696,8 @@ if __name__ == '__main__':
 
     #
     # dump file
-    #
-    numpy.save("ID21noEmittance",bl)
+    # #
+    # numpy.save("ID21noEmittance",bl)
 
     # read_dictionary = numpy.load('ID21.npy').item()
     # print(read_dictionary.keys())
