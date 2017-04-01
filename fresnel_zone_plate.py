@@ -61,16 +61,6 @@ def get_beam():
     oe0.WXSOU = 0.08
     oe0.WZSOU = 0.08
 
-    oe1.DUMMY = 1.0
-    oe1.FWRITE = 3
-    oe1.F_REFRAC = 2
-    oe1.F_SCREEN = 1
-    oe1.N_SCREEN = 1
-    oe1.T_IMAGE = 0.0
-    oe1.T_INCIDENCE = 0.0
-    oe1.T_REFLECTION = 180.0
-    oe1.T_SOURCE = 100.0
-
 
 
     #Run SHADOW to create the source
