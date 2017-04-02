@@ -626,7 +626,7 @@ def k_scan():
         numpy.save(fileName,bl)
 
     # make plot to png
-    
+
     data = []
     legend = []
     key = "calc1d_srw"
@@ -748,7 +748,35 @@ def main():
     # srundplug.compare_radiation_plot(read_dictionary,show=True)
 
 
+def k_value(photon_energy, electron_energy=6.04, period=0.018, ):
+
+    gamma = electron_energy* 1e9 / (codata.m_e *  codata.c**2 / codata.e)
+
+    lambdan = codata.h*codata.c/codata.e*1e10 / photon_energy # in A
+
+    harm_number = -1
+    KK = -1
+    while KK < 0:
+        harm_number += 2
+        lambda1 = lambdan * harm_number
+        KK = ( 2*( (1e-10*lambda1)/(period) *2*gamma*gamma  - 1))
+
+    return harm_number,numpy.sqrt(KK)
+
+def tc():
+    emin = 2000.0
+    emax = 200000.0
+    epoints = 100
+
+    energies = numpy.linspace(emin,emax,epoints)
+
+    for energy in energies:
+        H,K = k_value(energy)
+        print(">>>>E=%5.3f H:%d K:%5.3f "%(energy,H,K))
+
+
 
 if __name__ == '__main__':
     # main()
-    k_scan()
+    # k_scan()
+    tc()
