@@ -589,11 +589,68 @@ def beamline_info(bl,photonEnergy=None,distance=None,silent=False):
 
 ########################################################################################################################
 #
-# Main code
+# Main codes
 #
 ########################################################################################################################
 
-if __name__ == '__main__':
+def k_scan():
+
+    from srxraylib.plot.gol import plot,plot_show
+
+    bl = get_beamline("EBS_OB")
+    srundplug.USE_URGENT = False
+    srundplug.USE_US = False
+
+
+    print(bl)
+
+    K_values = 1.86 * numpy.array([0.5,1.0,3.0])
+
+    for K in K_values:
+        B0 = 1.0
+        bl['Kv'] = K
+        bl['PeriodID'] = bl['Kv'] / (93.36 * B0)
+        bl['NPeriods'] = int(1.0/bl['PeriodID'])
+
+        # bl['gapH'] = 0.01
+        # bl['gapV'] = 0.01
+
+        fileName="K_scan_%4.2f"%bl['Kv']
+
+        e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=2000.0,photonEnergyMax=50000.0,
+              photonEnergyPoints=10000,zero_emittance=False,fileName=fileName+".spec",fileAppend=False)
+
+        print(">>>>>> K: %f, Period: %f, N:%d "%(bl['Kv'],bl['PeriodID'],bl['NPeriods']))
+        print("Power from integral of SRW spectrum: %f W"%(f_s.sum()*1e3*codata.e*(e_s[1]-e_s[0])))
+        bl["calc1d_srw"] = {"energy":e_s,"flux":f_s}
+        numpy.save(fileName,bl)
+
+    # make plot to png
+    
+    data = []
+    legend = []
+    key = "calc1d_srw"
+
+    for K in K_values:
+        beamline_dict = numpy.load("K_scan_%4.2f.npy"%(K)).item()
+
+        if key in beamline_dict.keys():
+            data.append(beamline_dict[key]["energy"])
+            data.append(beamline_dict[key]["flux"])
+            legend.append("K=%4.2f"%(K))
+
+
+    fig = plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True,
+             xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw")
+
+    import matplotlib.pylab as plt
+    plt.savefig('k_scan.png',bbox_inches='tight')
+
+    # plot_show()
+
+
+def main():
+
 
     zero_emittance = True
     iplot = True
@@ -643,23 +700,8 @@ if __name__ == '__main__':
     # compare_flux_from_3d("ESRF_NEW_OB",emin=6500,emax=9500,npoints=200,zero_emittance=zero_emittance,iplot=iplot)
 
 
-    # TEST WIGGLER
-    beamline_names = ["EBS_OB"] # "XRAY_BOOKLET","ID16_NA","ESRF_NEW_OB","SHADOW_DEFAULT"]
-    bl = get_beamline("EBS_OB")
-    print(bl)
-    B0 = 1.0
-    bl['Kv'] = 4.
-
-    srundplug.USE_URGENT = False
-    srundplug.USE_US = False
-    bl['PeriodID'] = bl['Kv'] / (93.36 * B0)
-    bl['NPeriods'] = int(1.0/bl['PeriodID'])
-
-    print(">>>>>> K: %f, Period: %f, N:%d "%(bl['Kv'],bl['PeriodID'],bl['NPeriods']))
-
-
     bl = srundplug.compare_flux(bl,emin=1000, emax=100000,  npoints=1000,zero_emittance=zero_emittance)
-    if iplot: srundplug.compare_flux_plot(bl)
+    if iplot: srundplug.plot_flux(bl)
     print("K: %f, Period: %f, N:%d "%(bl['Kv'],bl['PeriodID'],bl['NPeriods']))
 
 
@@ -687,7 +729,7 @@ if __name__ == '__main__':
     #                                  zero_emittance=zero_emittance,iplot=True,show=True)
 
 
-    if iplot: srundplug.compare_radiation_plot(bl,show=True)
+    if iplot: srundplug.plot_radiation(bl,show=True)
 
 
 
@@ -706,3 +748,7 @@ if __name__ == '__main__':
     # srundplug.compare_radiation_plot(read_dictionary,show=True)
 
 
+
+if __name__ == '__main__':
+    # main()
+    k_scan()

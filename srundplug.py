@@ -2117,7 +2117,7 @@ def compare_flux(beamline,emin=3000.0,emax=50000.0,npoints=200,
 
     return beamline
 
-def compare_flux_plot(beamline_dict,show=True):
+def plot_flux(beamline_dict,plot_lin=True,plot_log=True,show=True):
     data = []
     legend = []
     for key in ["calc1d_us","calc1d_urgent","calc1d_pysru","calc1d_srw"]:
@@ -2126,11 +2126,9 @@ def compare_flux_plot(beamline_dict,show=True):
             data.append(beamline_dict[key]["flux"])
             legend.append(key)
 
-    plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True)
-    plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=False)
-
-    if show:
-        plot_show()
+    if plot_lin: plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True)
+    if plot_log: plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=False)
+    if show: plot_show()
 
 
 def compare_flux_from_3d(beamline,emin=3000.0,emax=50000.0,npoints=10,
@@ -2286,7 +2284,7 @@ def compare_power_density(beamline,npoints_grid=40,zero_emittance=False,fileName
         print("Post-convolution with sigmaH: %f mm, sigmaV: %f mm"%(1e3*SigmaH,1e3*SigmaV))
     return beamline
 
-def compare_power_density_plot(beamline_dict,show=True,contour=True,surface=True):
+def plot_power_density(beamline_dict,show=True,contour=True,surface=True):
 
 
     cmax = -100000.0
@@ -2367,7 +2365,7 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
 
     return beamline
 
-def compare_radiation_plot(beamline_dict,stack=True,show=True):
+def plot_radiation(beamline_dict,stack=True,show=True):
 
     cmax = -100000.0
     for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
@@ -2478,7 +2476,8 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
     #
 
     if radiance:
-        compare_radiation(beamline,zero_emittance=zero_emittance,npoints_grid=101,energy=None,iplot=True)
+        out = compare_radiation(beamline,zero_emittance=zero_emittance,npoints_grid=101,energy=None)
+        plot_radiation(out)
 
 
 
@@ -2487,16 +2486,19 @@ def main(radiance=True,flux=True,flux_from_3d=True,power_density=True):
     #
 
     if flux:
-        compare_flux(beamline,emin=100,emax=900,npoints=200, zero_emittance=zero_emittance,iplot=True)
+        out = compare_flux(beamline,emin=100,emax=900,npoints=200, zero_emittance=zero_emittance)
+        plot_flux(out)
     if flux_from_3d:
-        compare_flux_from_3d(beamline,emin=100,emax=900,npoints=10,zero_emittance=zero_emittance,iplot=True)
+        out = compare_flux_from_3d(beamline,emin=100,emax=900,npoints=10,zero_emittance=zero_emittance)
+        plot_flux(out)
 
     #
     # Power density
     #
 
     if power_density:
-        compare_power_density(beamline,npoints_grid=51,zero_emittance=zero_emittance,iplot=True)
+        out = compare_power_density(beamline,npoints_grid=51,zero_emittance=zero_emittance)
+        plot_power_density(out)
 
 if __name__ == '__main__':
     main(radiance=True,flux=False,flux_from_3d=False,power_density=False)
