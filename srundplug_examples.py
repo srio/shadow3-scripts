@@ -648,7 +648,7 @@ def k_scan(do_calculation=True):
     #
     ws = numpy.loadtxt("ws.out",skiprows=18)
     data.append(ws[:,0].copy())
-    data.append(0.8*ws[:,1].copy())
+    data.append(ws[:,1].copy())
     legend.append("K=%4.2f wiggler"%(K))
 
 
