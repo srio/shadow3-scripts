@@ -593,7 +593,7 @@ def beamline_info(bl,photonEnergy=None,distance=None,silent=False):
 #
 ########################################################################################################################
 
-def k_scan():
+def k_scan(do_calculation=True):
 
     from srxraylib.plot.gol import plot,plot_show
 
@@ -604,28 +604,29 @@ def k_scan():
 
     print(bl)
 
-    K_values = 1.86 * numpy.array([0.5,1.0,3.0])
+    K_values = 1.68 * numpy.array([0.5,1.0,3.0])
 
-    for K in K_values:
-        B0 = 1.0
-        bl['Kv'] = K
-        bl['PeriodID'] = bl['Kv'] / (93.36 * B0)
-        bl['NPeriods'] = int(1.0/bl['PeriodID'])
+    if do_calculation:
+        for K in K_values:
+            B0 = 1.0
+            bl['Kv'] = K
+            bl['PeriodID'] = bl['Kv'] / (93.36 * B0)
+            bl['NPeriods'] = int(1.0/bl['PeriodID'])
 
-        # bl['gapH'] = 0.01
-        # bl['gapV'] = 0.01
+            # bl['gapH'] = 0.01
+            # bl['gapV'] = 0.01
 
-        fileName="K_scan_%4.2f"%bl['Kv']
+            fileName="K_scan_%4.2f"%bl['Kv']
 
-        e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=2000.0,photonEnergyMax=50000.0,
-              photonEnergyPoints=10000,zero_emittance=False,fileName=fileName+".spec",fileAppend=False)
+            e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=2000.0,photonEnergyMax=50000.0,
+                  photonEnergyPoints=100000,zero_emittance=False,fileName=fileName+".spec",fileAppend=False)
 
-        print(">>>>>> K: %f, Period: %f, N:%d "%(bl['Kv'],bl['PeriodID'],bl['NPeriods']))
-        print("Power from integral of SRW spectrum: %f W"%(f_s.sum()*1e3*codata.e*(e_s[1]-e_s[0])))
-        bl["calc1d_srw"] = {"energy":e_s,"flux":f_s}
-        numpy.save(fileName,bl)
+            print(">>>>>> K: %f, Period: %f, N:%d "%(bl['Kv'],bl['PeriodID'],bl['NPeriods']))
+            print("Power from integral of SRW spectrum: %f W"%(f_s.sum()*1e3*codata.e*(e_s[1]-e_s[0])))
+            bl["calc1d_srw"] = {"energy":e_s,"flux":f_s}
+            numpy.save(fileName,bl)
 
-    # make plot to png
+    # plot
 
     data = []
     legend = []
@@ -635,18 +636,86 @@ def k_scan():
         beamline_dict = numpy.load("K_scan_%4.2f.npy"%(K)).item()
 
         if key in beamline_dict.keys():
-            data.append(beamline_dict[key]["energy"])
-            data.append(beamline_dict[key]["flux"])
-            legend.append("K=%4.2f"%(K))
+            f = beamline_dict[key]["flux"]
+            e = beamline_dict[key]["energy"]
+            igood = numpy.where(f>0)
+            data.append(e[igood])
+            data.append(f[igood])
+            legend.append("K=%3.1f"%(K))
 
+    #
+    # add ws results
+    #
+    ws = numpy.loadtxt("ws.out",skiprows=18)
+    data.append(ws[:,0].copy())
+    data.append(0.8*ws[:,1].copy())
+    legend.append("K=%4.2f wiggler"%(K))
 
-    fig = plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True,
-             xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw")
 
     import matplotlib.pylab as plt
-    plt.savefig('k_scan.png',bbox_inches='tight')
+    fig = plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True,
+             xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw")
+    plt.savefig('K_scan.png',bbox_inches='tight')
+    plt.show()
 
-    # plot_show()
+
+
+def window_scan(do_calculations=True):
+
+    bl = get_beamline("EBS_OB")
+    srundplug.USE_URGENT = False
+    srundplug.USE_US = False
+
+
+    print(bl)
+
+    W_values = numpy.array([.1e-3,1e-3,5e-3])
+
+    if do_calculations:
+        for W in W_values:
+
+            bl['gapH'] = W
+            bl['gapV'] = W
+
+            fileName="W_scan_%4.2f"%(1e3*bl['gapH'])
+
+            e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=2000.0,photonEnergyMax=50000.0,
+                  photonEnergyPoints=500,zero_emittance=True,fileName=fileName+".spec",fileAppend=False)
+
+            print("Power from integral of SRW spectrum: %f W"%(f_s.sum()*1e3*codata.e*(e_s[1]-e_s[0])))
+            bl["calc1d_srw"] = {"energy":e_s,"flux":f_s}
+            numpy.save(fileName,bl)
+
+    # make plot to png
+
+    data = []
+    legend = []
+    key = "calc1d_srw"
+
+    for W in W_values:
+        beamline_dict = numpy.load("W_scan_%4.2f.npy"%(1e3*W)).item()
+
+        if key in beamline_dict.keys():
+            f = beamline_dict[key]["flux"]
+            e = beamline_dict[key]["energy"]
+            igood = numpy.where(f>0)
+            data.append(e[igood])
+            data.append(f[igood])
+            legend.append("W=%4.2f mm"%(1e3*W))
+
+
+    from srxraylib.plot.gol import plot,plot_show
+    import matplotlib.pylab as plt
+
+    # fig in png
+    fig = plot(data,title=beamline_dict['name'],show=False,legend=legend,ylog=True,
+             xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw")
+    plt.savefig('W_scan.png',bbox_inches='tight')
+    plt.show()
+
+    # # interactive plot
+    # fig = plot(data,title=beamline_dict['name'],show=True,legend=legend,ylog=True,
+    #          xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw")
 
 
 def main():
@@ -670,8 +739,8 @@ def main():
         f.close()
 
 
-    beamline_names = ["ID21"] # "XRAY_BOOKLET","ID16_NA","ESRF_NEW_OB","SHADOW_DEFAULT"]
-    bl = get_beamline("ID21")
+    # beamline_names = ["ID21"] # "XRAY_BOOKLET","ID16_NA","ESRF_NEW_OB","SHADOW_DEFAULT"]
+    bl = get_beamline("EBS_OB")
 
 
     #
@@ -728,8 +797,8 @@ def main():
     #                                  photonEnergyMin=1000,photonEnergyMax=100000,photonEnergyPoints=500,
     #                                  zero_emittance=zero_emittance,iplot=True,show=True)
 
-
-    if iplot: srundplug.plot_radiation(bl,show=True)
+    #
+    # if iplot: srundplug.plot_radiation(bl,show=True)
 
 
 
@@ -778,5 +847,6 @@ def tc():
 
 if __name__ == '__main__':
     # main()
-    # k_scan()
-    tc()
+    k_scan(do_calculation=False)
+    window_scan(do_calculations=False)
+    # tc()
