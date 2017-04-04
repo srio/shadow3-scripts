@@ -323,10 +323,10 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False):
         ebeam['ElectronEnergy'] = 6.037
         idv['Kv'] = 2.14
         idv['PeriodID'] = 0.042
-        idv['NPeriods'] = 37
+        idv['NPeriods'] = int(1.6 / idv['PeriodID']) #37
         drift['distance'] = 26.0
-        slit['gapH'] = 0.002
-        slit['gapV'] = 0.002
+        slit['gapH'] = 0.00258
+        slit['gapV'] = 0.00195
 
     else:
         raise Exception("This name (%s) does not correspond at any name for a beamline"%nameBeamline)
@@ -838,20 +838,62 @@ def k_value(photon_energy, electron_energy=6.04, period=0.018, ):
     return harm_number,numpy.sqrt(KK)
 
 def tc():
-    emin = 2000.0
-    emax = 200000.0
-    epoints = 100
+    from srxraylib.plot.gol import plot
 
-    energies = numpy.linspace(emin,emax,epoints)
+    gmin = 11e-3
+    gmax = 66e-3
 
-    for energy in energies:
-        H,K = k_value(energy)
-        print(">>>>E=%5.3f H:%d K:%5.3f "%(energy,H,K))
+    kmin = 0.2
+    kmax = 3.5
+    kpoints = 10
+
+    bl = get_beamline("ID21")
+    gamma = bl["ElectronEnergy"]* 1e9 / (codata.m_e *  codata.c**2 / codata.e)
+
+    kvalues = numpy.linspace(kmin,kmax,kpoints)
+    f1values = numpy.zeros_like((kvalues))
+    f3values = numpy.zeros_like((kvalues))
+    f5values = numpy.zeros_like((kvalues))
+    e1values = numpy.zeros_like((kvalues))
+    e3values = numpy.zeros_like((kvalues))
+    e5values = numpy.zeros_like((kvalues))
+
+    # B0 = 93.6 * bl['PeriodID'] / kvalues
+    # lambda1 = bl['PeriodID'] * (1+0.5*kvalues**2) / 2 / gamma**2
+    # energy1 = codata.h * codata.c / codata.e / lambda1
+
+    for ik,k in enumerate(kvalues):
+        bl['Kv'] = k
+        resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
+        resonance_energy = m2ev / resonance_wavelength
+
+        e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=resonance_energy-1000,photonEnergyMax=resonance_energy+100,
+              photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
+        # print(">>>>K:%5.3f, B0:%5.3f T, lambda: %5.3f A, Energy: %5.3f keV, flux: %g"%
+        #       (k,B0[ik],1e10*lambda1[ik],1e-3*energy1[ik],f_s.max()))
+        # plot(e_s,f_s,ylog=True)
+        f1values[ik] = f_s.max()
+        e1values[ik] = resonance_energy
+
+        e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=3*resonance_energy-1000,photonEnergyMax=3*resonance_energy+100,
+              photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
+
+        f3values[ik] = f_s.max()
+        e3values[ik] = 3*resonance_energy
+
+        # e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=3*resonance_energy-1000,photonEnergyMax=3*resonance_energy+100,
+        #       photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
+        #
+        # f5values[ik] = f_s.max()
+        # e5values[ik] = 5*resonance_energy
+
+
+    plot(e1values,f1values,e3values,f3values)
 
 
 
 if __name__ == '__main__':
     # main()
-    k_scan(do_calculation=False)
-    window_scan(do_calculations=False)
-    # tc()
+    # k_scan(do_calculation=False)
+    # window_scan(do_calculations=False)
+    tc()
