@@ -178,7 +178,7 @@ def get_beamline(nameBeamline,zero_emittance=False,silent=False):
         ebeam['ElectronCurrent'] = 0.2
         ebeam['ElectronEnergy'] = 6.0
         idv['Kv'] = 1.68
-        idv['NPeriods'] = int(4.0/0.018)
+        idv['NPeriods'] = int(2.0/0.018)
         idv['PeriodID'] = 0.018
         drift['distance'] = 30.0
         slit['gapH'] = 0.001
@@ -601,6 +601,11 @@ def k_scan(do_calculation=True):
     srundplug.USE_URGENT = False
     srundplug.USE_US = False
 
+    bl['distance'] = 20.0
+    bl['ElectronEnergy'] = 6.04
+    bl['gapH'] = 0.0017
+    bl['gapV'] = 0.0017
+    print(bl)
 
     print(bl)
 
@@ -613,8 +618,6 @@ def k_scan(do_calculation=True):
             bl['PeriodID'] = bl['Kv'] / (93.36 * B0)
             bl['NPeriods'] = int(1.0/bl['PeriodID'])
 
-            # bl['gapH'] = 0.01
-            # bl['gapV'] = 0.01
 
             fileName="K_scan_%4.2f"%bl['Kv']
 
@@ -641,7 +644,7 @@ def k_scan(do_calculation=True):
             igood = numpy.where(f>0)
             data.append(e[igood])
             data.append(f[igood])
-            legend.append("K=%3.1f"%(K))
+            legend.append("K=%4.2f"%(K))
 
     #
     # add ws results
@@ -667,12 +670,14 @@ def window_scan(do_calculations=True):
     srundplug.USE_US = False
 
 
+    bl['distance'] = 20.0
+    bl['ElectronEnergy'] = 6.04
     print(bl)
 
-    W_values = numpy.array([.1e-3,1e-3,5e-3])
+    W_values = numpy.array([.1e-3,0.9e-3,1.7e-3])
 
     if do_calculations:
-        for W in W_values:
+        for i,W in enumerate(W_values):
 
             bl['gapH'] = W
             bl['gapV'] = W
@@ -680,7 +685,7 @@ def window_scan(do_calculations=True):
             fileName="W_scan_%4.2f"%(1e3*bl['gapH'])
 
             e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=2000.0,photonEnergyMax=50000.0,
-                  photonEnergyPoints=500,zero_emittance=True,fileName=fileName+".spec",fileAppend=False)
+                  photonEnergyPoints=25000,zero_emittance=True,fileName=fileName+".spec",fileAppend=False)
 
             print("Power from integral of SRW spectrum: %f W"%(f_s.sum()*1e3*codata.e*(e_s[1]-e_s[0])))
             bl["calc1d_srw"] = {"energy":e_s,"flux":f_s}
