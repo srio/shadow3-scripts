@@ -443,10 +443,12 @@ def beamline_info(bl,photonEnergy=None,distance=None,silent=False):
             print('   RMS divergence H/V [um]: '+ repr(photon_hp*1e6) + '  /  '+repr(photon_vp*1e6))
 
             print('\n')
-            cohH = lambda1/4/numpy.pi / photon_h / photon_hp
-            cohV = lambda1/4/numpy.pi / photon_v / photon_vp
-            print('   Coherent volume in H phase space: '+ repr(cohH) )
-            print('   Coherent volume in V phase space: '+ repr(cohV) )
+            cohH = lambda1/2/numpy.pi / photon_h / photon_hp
+            cohV = lambda1/2/numpy.pi / photon_v / photon_vp
+            print('   Coherent fraction in H phase space: '+ repr(cohH) )
+            print('   Coherent fraction in V phase space: '+ repr(cohV) )
+            print('   Coherent fraction in H*V phase space: '+ repr(cohH*cohV) )
+
             print('\n')
             dls = numpy.sqrt(2*l1*lambda1)/4/numpy.pi
             print('   RMS diffraction limit source size [um]: '+ repr(dls*1e6) )
@@ -891,9 +893,10 @@ def tc():
     plot(e1values,f1values,e3values,f3values)
 
 
-
 if __name__ == '__main__':
     # main()
     # k_scan(do_calculation=False)
-    # window_scan(do_calculations=False)
-    tc()
+    # window_scan(do_calculations=True)
+    # tc()
+    bl = get_beamline("EBS_OB")
+    print(beamline_info(bl))
