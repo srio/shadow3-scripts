@@ -1992,6 +1992,77 @@ def calc_from_3d(code,bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEn
 
 ########################################################################################################################
 #
+# Tuning curves on a slit
+#
+########################################################################################################################
+
+def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],do_plot_peaks=False,code='srw'):
+
+    if do_plot_peaks:
+        from srxraylib.plot.gol import plot
+    #
+
+    #
+    # calculations
+    #
+
+    gamma = bl["ElectronEnergy"]* 1e9 / (codata.m_e *  codata.c**2 / codata.e)
+    Kvalues = numpy.linspace(Kmin,Kmax,Kpoints)
+
+    # B0 = 93.6 * bl['PeriodID'] / kvalues
+    lambda1 = bl['PeriodID'] * (1+0.5*Kvalues**2) / 2 / gamma**2
+    lambda1shifted = lambda1 + 0.5 * bl['PeriodID'] * (bl["gapV"] / bl["distance"])**2
+    energy1 = codata.h * codata.c / codata.e / lambda1
+    energy1shifted = codata.h * codata.c / codata.e / lambda1shifted
+    energy1delta = energy1 - energy1shifted
+
+    flux_values = numpy.zeros((Kpoints,len(harmonics)))
+    evalues = numpy.zeros((Kpoints,len(harmonics)))
+    evalues_at_flux_peak = numpy.zeros((Kpoints,len(harmonics)))
+    #
+    #
+    for ik,k in enumerate(Kvalues):
+        bl['Kv'] = k
+
+        for ih,harmonic in enumerate(harmonics):
+
+            if code == "srw":
+                e_s,f_s = calc1d_srw(bl,
+                                photonEnergyMin=(harmonic*energy1[ik]-(1.0/harmonic)*energy1delta[ik]),
+                                photonEnergyMax=harmonic*energy1[ik],
+                                photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
+            elif code == "us":
+                e_s,f_s = calc1d_us(bl,
+                                photonEnergyMin=(harmonic*energy1[ik]-(1.0/harmonic)*energy1delta[ik]),
+                                photonEnergyMax=harmonic*energy1[ik],
+                                photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
+            elif code == "urgent":
+                e_s,f_s = calc1d_urgent(bl,
+                                photonEnergyMin=(harmonic*energy1[ik]-(1.0/harmonic)*energy1delta[ik]),
+                                photonEnergyMax=harmonic*energy1[ik],
+                                photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
+            else:
+                raise Exception("Not implemented code %s"%code)
+
+
+            max_at = numpy.argmax(f_s)
+            flux_values[ik,ih] = f_s[max_at]
+            evalues[ik,ih] = harmonic*energy1[ik]
+            evalues_at_flux_peak[ik,ih] = e_s[max_at]
+
+            if do_plot_peaks:
+                plot(e_s,f_s,ylog=False,title="K=%4.2f, n=%d"%(k,harmonic))
+
+
+
+    for ih in range(len(harmonics)):
+        for i in range(Kvalues.size):
+            print(harmonics[ih],evalues[i,ih],evalues_at_flux_peak[i,ih])
+
+    return Kvalues,harmonics,evalues_at_flux_peak,flux_values,
+
+########################################################################################################################
+#
 # Tools
 #
 ########################################################################################################################
@@ -2311,7 +2382,9 @@ def plot_power_density(beamline_dict,show=True,contour=True,surface=True):
     if show:
         plot_show()
 
-def compare_radiation(beamline,energy=None,npoints_grid=51,
+def compare_radiation(beamline,
+                      photonEnergyMin=None,photonEnergyMax=100000.0,photonEnergyPoints=1,
+                      npoints_grid=51,
                       zero_emittance=False,fileName=None):
 
 
@@ -2325,12 +2398,16 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
     print ("Resonance wavelength [A]: %g \n"%(1e10*resonance_wavelength))
     print ("Resonance energy [eV]: %g \n"%(resonance_energy))
 
-    if energy == None:
-        energy = resonance_energy
+    if photonEnergyMin == None:
+        photonEnergyMin = resonance_energy
+        photonEnergyMax = resonance_energy
+        photonEnergyPoints = 1
+
 
 
     if USE_SRWLIB:
-        e,h,v,f = calc3d_srw(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+        e,h,v,f = calc3d_srw(beamline,
+                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_srw"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2338,7 +2415,8 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
         print("Integral for SRW   :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
     if USE_PYSRU:
-        e,h,v,f = calc3d_pysru(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+        e,h,v,f = calc3d_pysru(beamline,
+                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_pysru"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2346,7 +2424,8 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
         print("Integral for pySRU :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
     if USE_URGENT:
-        e,h,v,f = calc3d_urgent(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+        e,h,v,f = calc3d_urgent(beamline,
+                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_urgent"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2354,7 +2433,8 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
         print("Integral for URGENT :",f.sum()*(h[1]-h[0])*(v[1]-v[0]) )
 
     if USE_US:
-        e,h,v,f = calc3d_us(beamline,photonEnergyMin=energy,photonEnergyMax=energy,photonEnergyPoints=1,
+        e,h,v,f = calc3d_us(beamline,
+                            photonEnergyMin=photonEnergyMin,photonEnergyMax=photonEnergyMax,photonEnergyPoints=photonEnergyPoints,
                             hSlitPoints=npoints_grid,vSlitPoints=npoints_grid,
                             zero_emittance=zero_emittance,fileName=fileName,fileAppend=True)
         beamline["calc3d_us"] = {"e":e,"h":h,"v":v,"f":f}
@@ -2368,10 +2448,14 @@ def compare_radiation(beamline,energy=None,npoints_grid=51,
 def plot_radiation(beamline_dict,stack=True,show=True):
 
     cmax = -100000.0
+    data_found = False
     for key in ["calc3d_us","calc3d_urgent","calc3d_pysru","calc3d_srw"]:
         if key in beamline_dict.keys():
             f = beamline_dict[key]["f"]
             cmax = numpy.max([cmax,f.max()])
+            data_found = True
+
+    if not data_found: return
 
     contour_levels = numpy.linspace(0,cmax,20)
 

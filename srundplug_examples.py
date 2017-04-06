@@ -725,178 +725,139 @@ def window_scan(do_calculations=True):
     #          xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw")
 
 
-def main():
+def multicomparison(beamline_name = "EBS_OB",
+                    zero_emittance = True,
+                    do_plots = True,
+                    compare_flux=True,
+                    compare_power_density=False,
+                    compare_radiation=False,
+                    compare_radiation_at_resonance=False,
+                    dump_file=False,
+                    dumpSpecFileName=None):
 
 
-    zero_emittance = True
-    iplot = True
 
 
-
+    bl = get_beamline(beamline_name)
     #
     # open spec file
     #
 
-    fileName = None
-
-    if fileName is not None:
+    if dumpSpecFileName is not None:
         scanCounter = 0
         f = open(fileName,"w")
-        f.write("#F "+fileName+"\n")
+        f.write("#F "+dumpSpecFileName+"\n")
         f.close()
-
-
-    # beamline_names = ["ID21"] # "XRAY_BOOKLET","ID16_NA","ESRF_NEW_OB","SHADOW_DEFAULT"]
-    bl = get_beamline("EBS_OB")
 
 
     #
     # Info
     #
-
-    # for beamline_name in beamline_names:
-    #     print(beamline_info(get_beamline(beamline_name,zero_emittance=zero_emittance),distance=26.0))
+    print(beamline_info(bl))
 
 
     #
     # Flux
     #
 
+    if compare_flux:
+        srundplug.USE_SRWLIB = True
 
-    srundplug.USE_SRWLIB = True
+        bl = srundplug.compare_flux(bl,emin=1000, emax=100000,  npoints=1000,zero_emittance=zero_emittance)
+        if do_plots: srundplug.plot_flux(bl)
+        print("K: %f, Period: %f, N:%d "%(bl['Kv'],bl['PeriodID'],bl['NPeriods']))
 
-    # compare_flux(get_beamline("XRAY_BOOKLET"  ),emin=100, emax=900,  npoints=200,zero_emittance=True,iplot=iplot)
+    if compare_power_density:
+        #
+        # Power density
+        #
 
-    # this is quite slow
-    #  compare_flux(get_beamline("ID16_NA"       ),emin=3000,emax=20000,npoints=100,zero_emittance=zero_emittance,
-    #              iplot=iplot,srw_max_harmonic_number=61)
-
-    # compare_flux(get_beamline("ESRF_NEW_OB"   ),emin=6500,emax=9500, npoints=200,zero_emittance=zero_emittance,iplot=iplot)
-    # compare_flux(get_beamline("SHADOW_DEFAULT"),emin=3000,emax=50000,npoints=200,zero_emittance=zero_emittance,iplot=iplot)
-    # compare_flux_from_3d("ESRF_NEW_OB",emin=6500,emax=9500,npoints=200,zero_emittance=zero_emittance,iplot=iplot)
-
-
-    bl = srundplug.compare_flux(bl,emin=1000, emax=100000,  npoints=1000,zero_emittance=zero_emittance)
-    if iplot: srundplug.plot_flux(bl)
-    print("K: %f, Period: %f, N:%d "%(bl['Kv'],bl['PeriodID'],bl['NPeriods']))
-
-
-    #
-    # Power density
-    #
-    # compare_power_density(get_beamline("ID21"    ),zero_emittance=zero_emittance,iplot=iplot)
-    # compare_power_density(get_beamline("SHADOW_DEFAULT" ),zero_emittance=zero_emittance,iplot=iplot)
-    # compare_power_density(get_beamline("XRAY_BOOKLET"   ),zero_emittance=zero_emittance,iplot=iplot)
-    # compare_power_density(get_beamline("ID16_NA"        ),zero_emittance=zero_emittance,iplot=iplot)
-    # compare_power_density(get_beamline("EBS_OB"),zero_emittance=zero_emittance,iplot=iplot)
-
-    # bl = srundplug.compare_power_density(bl,zero_emittance=zero_emittance)
-    # if iplot: srundplug.compare_power_density_plot(bl)
+        bl = srundplug.compare_power_density(bl,zero_emittance=zero_emittance)
+        if do_plots: srundplug.plot_power_density(bl)
 
     #
     # Radiance
     #
 
-    # for beamline_name in beamline_names:
-    #     compare_radiation(get_beamline(beamline_name,zero_emittance=zero_emittance),     energy=None,zero_emittance=zero_emittance,iplot=True,show=True)
-    # srundplug.USE_PYSRU = True
-    # bl = srundplug.compare_radiation(bl,
-    #                                  photonEnergyMin=1000,photonEnergyMax=100000,photonEnergyPoints=500,
-    #                                  zero_emittance=zero_emittance,iplot=True,show=True)
+    if compare_radiation_at_resonance:
+        srundplug.USE_PYSRU = True
+        bl = srundplug.compare_radiation(bl,
+                                         photonEnergyMin=None,photonEnergyMax=100000,photonEnergyPoints=500,
+                                         zero_emittance=zero_emittance)
+        if do_plots: srundplug.plot_radiation(bl,show=True,stack=False)
 
-    #
-    # if iplot: srundplug.plot_radiation(bl,show=True)
-
-
-
-
-
-
-    #
-    # dump file
-    # #
-    # numpy.save("ID21noEmittance",bl)
-
-    # read_dictionary = numpy.load('ID21.npy').item()
-    # print(read_dictionary.keys())
-    # srundplug.calculate_power(read_dictionary)
-    # srundplug.compare_power_density_plot(read_dictionary,show=True)
-    # srundplug.compare_radiation_plot(read_dictionary,show=True)
+    if compare_radiation:
+        srundplug.USE_PYSRU = True
+        bl = srundplug.compare_radiation(bl,
+                                         photonEnergyMin=1000,photonEnergyMax=100000,photonEnergyPoints=500,
+                                         zero_emittance=zero_emittance)
+        if do_plots: srundplug.plot_radiation(bl,show=True,stack=True)
 
 
-def k_value(photon_energy, electron_energy=6.04, period=0.018, ):
+    if dump_file:
+        # dump file
+        numpy.save(beamline_name,bl)
 
-    gamma = electron_energy* 1e9 / (codata.m_e *  codata.c**2 / codata.e)
 
-    lambdan = codata.h*codata.c/codata.e*1e10 / photon_energy # in A
+def multicomparison_plot_from_file(fileName="ID21.npy"):
+        read_dictionary = numpy.load(fileName).item()
+        print(read_dictionary.keys())
+        srundplug.calculate_power(read_dictionary)
+        srundplug.plot_flux(read_dictionary)
+        srundplug.plot_power_density(read_dictionary,show=True)
+        srundplug.plot_radiation(read_dictionary,show=True)
 
-    harm_number = -1
-    KK = -1
-    while KK < 0:
-        harm_number += 2
-        lambda1 = lambdan * harm_number
-        KK = ( 2*( (1e-10*lambda1)/(period) *2*gamma*gamma  - 1))
 
-    return harm_number,numpy.sqrt(KK)
+def tuning_curves_id21():
 
-def tc():
-    from srxraylib.plot.gol import plot
-
-    gmin = 11e-3
-    gmax = 66e-3
-
-    kmin = 0.2
-    kmax = 3.5
-    kpoints = 10
+    from srundplug import tuning_curves_on_slit
 
     bl = get_beamline("ID21")
-    gamma = bl["ElectronEnergy"]* 1e9 / (codata.m_e *  codata.c**2 / codata.e)
 
-    kvalues = numpy.linspace(kmin,kmax,kpoints)
-    f1values = numpy.zeros_like((kvalues))
-    f3values = numpy.zeros_like((kvalues))
-    f5values = numpy.zeros_like((kvalues))
-    e1values = numpy.zeros_like((kvalues))
-    e3values = numpy.zeros_like((kvalues))
-    e5values = numpy.zeros_like((kvalues))
+    # K = a_gap * exp(-b_gap * gap[m])
+    # ID21 U40
+    gap_a = 1.9206
+    gap_b = 0.0785 * 1e3
+    # ID21 U32
+    gap_a = 1.9206
+    gap_b = 0.0982 * 1e3
 
-    # B0 = 93.6 * bl['PeriodID'] / kvalues
-    # lambda1 = bl['PeriodID'] * (1+0.5*kvalues**2) / 2 / gamma**2
-    # energy1 = codata.h * codata.c / codata.e / lambda1
+    gap_min = 11e-3
+    gap_max = 66e-3
 
-    for ik,k in enumerate(kvalues):
-        bl['Kv'] = k
-        resonance_wavelength = (1 + bl['Kv']**2 / 2.0) / 2 / gamma**2 * bl["PeriodID"]
-        resonance_energy = m2ev / resonance_wavelength
+    Bmin = gap_a * numpy.exp(-gap_b * gap_min)
+    Bmax = gap_a * numpy.exp(-gap_b * gap_max)
 
-        e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=resonance_energy-1000,photonEnergyMax=resonance_energy+100,
-              photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
-        # print(">>>>K:%5.3f, B0:%5.3f T, lambda: %5.3f A, Energy: %5.3f keV, flux: %g"%
-        #       (k,B0[ik],1e10*lambda1[ik],1e-3*energy1[ik],f_s.max()))
-        # plot(e_s,f_s,ylog=True)
-        f1values[ik] = f_s.max()
-        e1values[ik] = resonance_energy
-
-        e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=3*resonance_energy-1000,photonEnergyMax=3*resonance_energy+100,
-              photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
-
-        f3values[ik] = f_s.max()
-        e3values[ik] = 3*resonance_energy
-
-        # e_s,f_s = srundplug.calc1d_srw(bl,photonEnergyMin=3*resonance_energy-1000,photonEnergyMax=3*resonance_energy+100,
-        #       photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
-        #
-        # f5values[ik] = f_s.max()
-        # e5values[ik] = 5*resonance_energy
+    Kmin = 93.4 * Bmin * bl["PeriodID"]
+    Kmax = 93.4 * Bmax * bl["PeriodID"]
 
 
-    plot(e1values,f1values,e3values,f3values)
+    print("Using min gap: %f mm, Bmin: %f, Kmin: %f"%(1e3*gap_min, Bmin, Kmin))
+    print("Using max gap: %f mm, Bmax: %f, Kmax: %f"%(1e3*gap_max, Bmax, Kmax))
+
+    K_scan,harmonics,energy_values_at_flux_peak,flux_values = tuning_curves_on_slit(bl,
+                    Kmin=Kmin,Kmax=Kmax,Kpoints=10,harmonics=[1],do_plot_peaks=False,code='srw')
+
+    # plot_tuning_curves_on_slit(K_scan,harmonics,energy_values_at_flux_peak,flux_values)
+
+    from srxraylib.plot.gol import plot
+    tmp = []
+    tmpK = []
+
+    for ih in range(len(harmonics)):
+        tmp.append(energy_values_at_flux_peak[:,ih])
+        tmp.append(flux_values[:,ih])
+        tmpK.append(energy_values_at_flux_peak[:,ih])
+        tmpK.append(K_scan)
+
+    plot(tmp,title="K-scan, flux on slit",xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw",show=False)
+    plot(tmpK,title="K-scan",xtitle="Photon energy [eV]",ytitle="K",show=True)
+
 
 
 if __name__ == '__main__':
-    # main()
-    # k_scan(do_calculation=False)
+    # multicomparison(beamline_name="EBS_OB",dump_file=True)
+    # multicomparison_plot_from_file("EBS_OB.npy")
     # window_scan(do_calculations=True)
-    # tc()
-    bl = get_beamline("EBS_OB")
-    print(beamline_info(bl))
+    tuning_curves_id21()
+
