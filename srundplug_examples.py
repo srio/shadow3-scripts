@@ -835,7 +835,7 @@ def tuning_curves_id21():
     print("Using min gap: %f mm, Bmin: %f, Kmin: %f"%(1e3*gap_min, Bmin, Kmin))
     print("Using max gap: %f mm, Bmax: %f, Kmax: %f"%(1e3*gap_max, Bmax, Kmax))
 
-    K_scan,harmonics,energy_values_at_flux_peak,flux_values = tuning_curves_on_slit(bl,
+    K_scan,harmonics,Power,energy_values_at_flux_peak,flux_values = tuning_curves_on_slit(bl,
                     Kmin=Kmin,Kmax=Kmax,Kpoints=10,harmonics=[1],do_plot_peaks=False,code='srw')
 
     # plot_tuning_curves_on_slit(K_scan,harmonics,energy_values_at_flux_peak,flux_values)
@@ -852,6 +852,7 @@ def tuning_curves_id21():
 
     plot(tmp,title="K-scan, flux on slit",xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw",show=False)
     plot(tmpK,title="K-scan",xtitle="Photon energy [eV]",ytitle="K",show=True)
+    plot(K_scan,Power,title="Power-scan",xtitle="K",ytitle="Power on slit [W]",show=True)
 
 
 

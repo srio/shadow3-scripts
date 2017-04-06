@@ -1996,7 +1996,8 @@ def calc_from_3d(code,bl,photonEnergyMin=3000.0,photonEnergyMax=55000.0,photonEn
 #
 ########################################################################################################################
 
-def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],do_plot_peaks=False,code='srw'):
+def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],zero_emittance=False,
+                          do_plot_peaks=False,code='srw'):
 
     if do_plot_peaks:
         from srxraylib.plot.gol import plot
@@ -2023,24 +2024,24 @@ def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],do_plot_
     #
     for ik,k in enumerate(Kvalues):
         bl['Kv'] = k
-
+        print("\n-------- tuning_curves_on_slit: calculating flux for Kv: %f4.3"%k)
         for ih,harmonic in enumerate(harmonics):
 
             if code == "srw":
                 e_s,f_s = calc1d_srw(bl,
                                 photonEnergyMin=(harmonic*energy1[ik]-(1.0/harmonic)*energy1delta[ik]),
                                 photonEnergyMax=harmonic*energy1[ik],
-                                photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
+                                photonEnergyPoints=100,zero_emittance=zero_emittance,fileName=None,fileAppend=False)
             elif code == "us":
                 e_s,f_s = calc1d_us(bl,
                                 photonEnergyMin=(harmonic*energy1[ik]-(1.0/harmonic)*energy1delta[ik]),
                                 photonEnergyMax=harmonic*energy1[ik],
-                                photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
+                                photonEnergyPoints=100,zero_emittance=zero_emittance,fileName=None,fileAppend=False)
             elif code == "urgent":
                 e_s,f_s = calc1d_urgent(bl,
                                 photonEnergyMin=(harmonic*energy1[ik]-(1.0/harmonic)*energy1delta[ik]),
                                 photonEnergyMax=harmonic*energy1[ik],
-                                photonEnergyPoints=100,zero_emittance=False,fileName=None,fileAppend=False)
+                                photonEnergyPoints=100,zero_emittance=zero_emittance,fileName=None,fileAppend=False)
             else:
                 raise Exception("Not implemented code %s"%code)
 
@@ -2054,12 +2055,41 @@ def tuning_curves_on_slit(bl,Kmin=0.2,Kmax=2.2,Kpoints=10,harmonics=[1],do_plot_
                 plot(e_s,f_s,ylog=False,title="K=%4.2f, n=%d"%(k,harmonic))
 
 
+    #
+    # calculate power
+    #
+    Pvalues = numpy.zeros_like(Kvalues)
 
+    for ik,k in enumerate(Kvalues):
+        bl['Kv'] = k
+        print("\n-------- tuning_curves_on_slit: calculating power for Kv: %f4.3"%k)
+
+        if code == "srw":
+            h,v,p = calc2d_srw(bl,zero_emittance=zero_emittance,hSlitPoints=51,vSlitPoints=51,
+                       srw_max_harmonic_number=51,fileName=None,fileAppend=False,)
+            tot_power = p.sum()*(h[1]-h[0])*(v[1]-v[0])
+        elif code == "us":
+            h,v,p = calc2d_us(bl,zero_emittance=zero_emittance,hSlitPoints=51,vSlitPoints=51,
+                       fileName=None,fileAppend=False,)
+            tot_power = p.sum()*(h[1]-h[0])*(v[1]-v[0])
+        elif code == "urgent":
+            h,v,p = calc2d_urgent(bl,zero_emittance=zero_emittance,hSlitPoints=51,vSlitPoints=51,
+                       fileName=None,fileAppend=False,)
+            tot_power = p.sum()*(h[1]-h[0])*(v[1]-v[0])
+        else:
+            raise Exception("Not implemented code %s"%code)
+
+        Pvalues[ik] = tot_power
+
+
+    print("\n\n%10s%13s%13s%13s%13s"%("Harmonic:","Kv:","Resonance [eV]",
+                                      "Flux peak [eV]","Total Power on slit [eV]"))
     for ih in range(len(harmonics)):
         for i in range(Kvalues.size):
-            print(harmonics[ih],evalues[i,ih],evalues_at_flux_peak[i,ih])
+            print("%10d%17.3f%17.3f%17.3f%17.3f"%
+                  (harmonics[ih],Kvalues[i],evalues[i,ih],evalues_at_flux_peak[i,ih],Pvalues[i]))
 
-    return Kvalues,harmonics,evalues_at_flux_peak,flux_values,
+    return Kvalues,harmonics,Pvalues,evalues_at_flux_peak,flux_values,
 
 ########################################################################################################################
 #
