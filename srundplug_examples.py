@@ -850,9 +850,11 @@ def tuning_curves_id21():
         tmpK.append(energy_values_at_flux_peak[:,ih])
         tmpK.append(K_scan)
 
-    plot(tmp,title="K-scan, flux on slit",xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw",show=False)
-    plot(tmpK,title="K-scan",xtitle="Photon energy [eV]",ytitle="K",show=True)
-    plot(K_scan,Power,title="Power-scan",xtitle="K",ytitle="Power on slit [W]",show=True)
+    tmp = numpy.array(tmp)
+    tmpK = numpy.array(tmpK)
+    plot(tmp[0,:],tmp[1,:],title="K-scan, flux on slit",xtitle="Photon energy [eV]",ytitle="Photons/s/0.1%bw",show=False)
+    plot(tmpK[0,:],tmpK[1,:],title="K-scan",xtitle="Photon energy [eV]",ytitle="K",show=True)
+    #plot(K_scan[0,:],K_scan[1,:],Power,title="Power-scan",xtitle="K",ytitle="Power on slit [W]",show=True)
 
 
 
