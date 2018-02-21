@@ -1,0 +1,24 @@
+{
+    "CLASS_NAME": "LightSource",
+    "name": "ESRF_ID23_LowBeta_ppu20.2_1",
+    "electron_beam": {
+        "CLASS_NAME": "ElectronBeam",
+        "energy_in_GeV": 6.037,
+        "energy_spread": 0.0011,
+        "current": 0.2,
+        "number_of_bunches": 1,
+        "moment_xx": 2.53988784729e-09,
+        "moment_xxp": 0.0,
+        "moment_xpxp": 1.1490124864e-08,
+        "moment_yy": 1.1865200268100001e-11,
+        "moment_yyp": 0.0,
+        "moment_ypyp": 1.3484783376000002e-12
+    },
+    "magnetic_structure": {
+        "CLASS_NAME": "Undulator",
+        "K_vertical": 0.64785024,
+        "K_horizontal": 0.0,
+        "period_length": 0.0202,
+        "number_of_periods": 79
+    }
+}
