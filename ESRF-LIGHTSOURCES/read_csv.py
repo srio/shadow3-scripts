@@ -10,6 +10,7 @@ import numpy
 
 
 f = open('ID_data_jan_2017_srio.csv','r')
+fout = open('lightsources.txt','w')
 txt = f.read().split('\n')
 
 
@@ -59,10 +60,13 @@ for i,line in enumerate(txt):
         UlistS = Ulist.split("/")
         print(">>>",(UlistS[2]))
         #
-        name = "ESRF_ID%s_%s_%s_%s"%(Section,source,UlistS[1],UlistS[2])
+        name = "ESRF_ID%02d_%s_%s_%s"%(int(Section),source,UlistS[1],UlistS[2])
         src = LightSource(name,src1,src2)
 
         print(src.info())
         src.to_json(name+'.json')
+        fout.write(name+".json\n")
+fout.close()
+print("File written to disk (with list of files): lightsources.txt")
 
 
