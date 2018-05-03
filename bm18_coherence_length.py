@@ -5,7 +5,7 @@ import scipy.constants as codata
 
 
 #inputs BM18-EBS
-distance_bm = 186.0 # 220.0
+distance_bm = 180.0 # 220.0
 beta_bm = 1.814
 eta_bm = 0.018
 
@@ -34,7 +34,7 @@ wavelength = codata.h * codata.c / photon_energy / codata.e
 #
 sigma_bm = np.sqrt( emittance_ebs * beta_bm + (eta_bm * energy_dispersion)**2 )
 print("sigma_bm: %f, corrected by dispersion: %f"%(1e6*np.sqrt( emittance_ebs * beta_bm),1e6*sigma_bm))
-size_broadening = 34e-6 # transversal excursion of electrons in the short wiggler
+size_broadening = 0.0 # 34e-6 # transversal excursion of electrons in the short wiggler
 size_bm = 2.355*sigma_bm + size_broadening # just addition, not in quadrature as size_broadening is not Gaussian
 coherence_length_bm = wavelength * distance_bm / ( 2 * size_bm)
 
@@ -57,7 +57,24 @@ size_und_present = 2.355 * np.sqrt( (sigma_und_present)**2 + (sigma_phot)**2 )
 coherence_length_und_present = wavelength * distance_und / ( 2 * size_und_present)
 
 print("size_bm: %f , size_und %f: ratio: %f, size_und_present: %f"%(1e6*size_bm,1e6*size_und[0],size_bm/size_und[0],1e6*size_und_present[0]))
-print("ration distance bm/diatance und: %f"%(distance_bm/distance_und))
+print("size_bm/2.35: %f , size_und/2.35 %f: ratio: %f, size_und_present/2.35: %f"%(
+     1e6*size_bm/2.35,1e6*size_und[0]/2.35,size_bm/size_und[0],1e6*size_und_present[0]/2.35))
+
+
+# # Paul's values
+#
+# size_bm          = 26.0e-6  / 2.355 # BAD
+# size_und         = 30.3e-6  / 2.355 # BAD
+# size_und_present = 150.0e-6 / 2.355 # BAD
+# size_bm          = 26.0e-6  * 2.355 # GOOD
+# size_und         = 30.3e-6  * 2.355 # GOOD
+# size_und_present = 150.0e-6         # GOOD
+# coherence_length_bm = wavelength * distance_bm / ( 2 * size_bm)
+# coherence_length_und = wavelength * distance_und / ( 2 * size_und)
+# coherence_length_und_present = wavelength * distance_und / ( 2 * size_und_present)
+#
+# print("size_bm: %f , size_und %f: ratio: %f, size_und_present: %f"%(1e6*size_bm,1e6*size_und,size_bm/size_und,1e6*size_und_present))
+# print("ration distance bm/diatance und: %f"%(distance_bm/distance_und))
 
 plot(1e-3*photon_energy,1e6*coherence_length_bm,
      1e-3*photon_energy,1e6*coherence_length_und,
