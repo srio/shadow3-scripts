@@ -60,6 +60,11 @@ print("size_bm: %f , size_und %f: ratio: %f, size_und_present: %f"%(1e6*size_bm,
 print("size_bm/2.35: %f , size_und/2.35 %f: ratio: %f, size_und_present/2.35: %f"%(
      1e6*size_bm/2.35,1e6*size_und[0]/2.35,size_bm/size_und[0],1e6*size_und_present[0]/2.35))
 
+plot(1e-3*photon_energy,1e6*coherence_length_bm,
+     1e-3*photon_energy,1e6*coherence_length_und,
+     1e-3*photon_energy,1e6*coherence_length_und_present,
+     xlog=False,ylog=True,xtitle="photon energy [keV]",ytitle="coherence length [um]",
+     yrange=[1,1000],legend=["bm18","id19-EBS","id19-present"])
 
 # # Paul's values
 #
@@ -76,8 +81,3 @@ print("size_bm/2.35: %f , size_und/2.35 %f: ratio: %f, size_und_present/2.35: %f
 # print("size_bm: %f , size_und %f: ratio: %f, size_und_present: %f"%(1e6*size_bm,1e6*size_und,size_bm/size_und,1e6*size_und_present))
 # print("ration distance bm/diatance und: %f"%(distance_bm/distance_und))
 
-plot(1e-3*photon_energy,1e6*coherence_length_bm,
-     1e-3*photon_energy,1e6*coherence_length_und,
-     1e-3*photon_energy,1e6*coherence_length_und_present,
-     xlog=False,ylog=True,xtitle="photon energy [keV]",ytitle="coherence length [um]",
-     yrange=[1,1000],legend=["bm18","id19-EBS","id19-present"])

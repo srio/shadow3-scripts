@@ -15,6 +15,7 @@ def W_at_x2x2(af,index_x2=None,index_y2=None,nmax=0):
     if index_y2 is None:
         index_x2 = int(af.y_coordinates().size / 2)
 
+    print("Unsing indices: ",index_x2,index_y2," out of ",af.x_coordinates().size,af.y_coordinates().size)
 
     for i in range(nmax+1):
         mi = af.mode(i)
@@ -35,19 +36,38 @@ if __name__ == "__main__":
     af  = CompactAFReader.initialize_from_file(filename_ebs)
 
 
-    index_x2=200
-    index_y2=100
+    h5file = "vx_id16a_E.h5"
+    index_x2=573
+    index_y2=200
+    #
+    h5file = "vx_id16a_D.h5"
+    index_x2=600
+    index_y2=185
+
+    h5file = "vx_id16a_C.h5"
+    index_x2=590
+    index_y2=167
+    #
+    h5file = "vx_id16a_B.h5"
+    index_x2=535
+    index_y2=183
+    # #
+    h5file = "vx_id16a_A.h5"
+    index_x2=1007//2
+    index_y2=335//2
 
 
     if index_x2 is None:
         index_x2 = int(af.x_coordinates().size / 2)
 
     if index_y2 is None:
-        index_x2 = int(af.y_coordinates().size / 2)
+        index_y2 = int(af.y_coordinates().size / 2)
+
+    print("Unsing indices: ",index_x2,index_y2," out of ",af.x_coordinates().size,af.y_coordinates().size)
 
 
     #
-    h5file = "vx_id16a.h5"
+
 
     h5w = H5SimpleWriter.initialize_file(h5file,creator="vortx.py")
     # h5_initialize(h5file,creator="vortx.py")
@@ -63,10 +83,12 @@ if __name__ == "__main__":
     # h5w.aadd_dataset()
 
 
-    for nmax in range(6):
+    t = numpy.concatenate((numpy.arange(10),numpy.arange(10,100,10),numpy.arange(100,1001,100)))
+
+    for nmax in t:
         print("Calculating mode %d"%nmax)
         # tmp = W_at_x2x2(af,index_x2=585,index_y2=170,nmax=nmax)
-        tmp = W_at_x2x2(af,index_x2=None,index_y2=100,nmax=nmax)
+        tmp = W_at_x2x2(af,index_x2=index_x2,index_y2=index_y2,nmax=nmax)
 
 
         h5w.create_entry("uptomode%d"%nmax,nx_default="Wphase")
