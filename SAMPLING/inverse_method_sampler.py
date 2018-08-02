@@ -8,9 +8,9 @@ class Sampler1D(object):
 
         self._pdf = pdf
         if pdf_x is None:
-            self._set_default_pdf_x()
+            self._set_default_x()
         else:
-            self._pdf_x = pdf_x
+            self._x = pdf_x
         self._cdf = self._cdf_calculate()
 
     def pdf(self):
@@ -20,7 +20,7 @@ class Sampler1D(object):
         return self._cdf
 
     def abscissas(self):
-        return self._pdf_x
+        return self._x
 
     def get_sampled(self,random_in_0_1):
         y = numpy.array(random_in_0_1)
@@ -29,30 +29,30 @@ class Sampler1D(object):
             x_rand_array = numpy.zeros_like(random_in_0_1)
             for i,cdf_rand in enumerate(random_in_0_1):
                 ival,idelta,pendent = self._get_index(cdf_rand)
-                x_rand_array[i] = self._pdf_x[ival] + idelta
+                x_rand_array[i] = self._x[ival] + idelta
             return x_rand_array
         else:
             ival,idelta,pendent = self._get_index(random_in_0_1)
-            return self._pdf_x[ival] + idelta
-
-    def get_sampled_and_histogram(self,random_in_0_1,bins=51,range=None):
-        s1 = self.get_sampled(random_in_0_1)
-        if range is None:
-            range = [self._pdf_x.min(),self._pdf_x.max()]
-        h,h_edges = numpy.array(numpy.histogram(s1,bins=bins,range=range))
-        h_center = h_edges[0:-1] + 0.5*numpy.diff(h_edges)
-        return s1,h,h_center
+            return self._x[ival] + idelta
 
     def get_n_sampled_points(self,npoints):
         cdf_rand_array = numpy.random.random(npoints)
         return self.get_sampled(cdf_rand_array)
 
+    def get_sampled_and_histogram(self,random_in_0_1,bins=51,range=None):
+        s1 = self.get_sampled(random_in_0_1)
+        if range is None:
+            range = [self._x.min(),self._x.max()]
+        h,h_edges = numpy.array(numpy.histogram(s1,bins=bins,range=range))
+        h_center = h_edges[0:-1] + 0.5*numpy.diff(h_edges)
+        return s1,h,h_center
+
     def get_n_sampled_points_and_histogram(self,npoints,bins=51,range=None):
         cdf_rand_array = numpy.random.random(npoints)
         return self.get_sampled_and_histogram(cdf_rand_array,bins=bins,range=range)
 
-    def _set_default_pdf_x(self):
-        self._pdf_x = numpy.arange(self._pdf.size)
+    def _set_default_x(self):
+        self._x = numpy.arange(self._pdf.size)
 
     def _cdf_calculate(self):
         cdf = numpy.cumsum(self._pdf)
@@ -81,10 +81,10 @@ def test_1d():
     x = numpy.linspace(-10,10,51)
     y = numpy.exp(- (x-x0)**2 / 2 / sigma**2)
 
-    y[0:21] = 100.0
-    y[21:31] = 4.0
-    y[31:41] = 5.0
-    y[41:51] = 10.0
+    # y[0:21] = 100.0
+    # y[21:31] = 4.0
+    # y[31:41] = 5.0
+    # y[41:51] = 10.0
 
 
     s1 = Sampler1D(y,x)
@@ -114,18 +114,18 @@ def test_1d():
 
 class Sampler2D(object):
 
-    def __init__(self,pdf,pdf_x0=None,pdf_x1=None):
+    def __init__(self,pdf,x0=None,x1=None):
 
         self._pdf = pdf
-        if pdf_x0 is None:
-            self._set_default_pdf_x0()
+        if x0 is None:
+            self._set_default_x0()
         else:
-            self._pdf_x0 = pdf_x0
+            self._x0 = x0
 
-        if pdf_x1 is None:
-            self._set_default_pdf_x1()
+        if x1 is None:
+            self._set_default_x1()
         else:
-            self._pdf_x1 = pdf_x1
+            self._x1 = x1
 
         self._cdf2,self._cdf1 = self._cdf_calculate()
 
@@ -136,7 +136,7 @@ class Sampler2D(object):
         return self._cdf2,self._cdf1
 
     def abscissas(self):
-        return self._pdf_x0,self._pdf_x1
+        return self._x0,self._x1
 
     def get_sampled(self,random0,random1):
         y0 = numpy.array(random0)
@@ -148,22 +148,22 @@ class Sampler2D(object):
 
             for i,cdf_rand0 in enumerate(y0):
                 ival,idelta,pendent = self._get_index0(cdf_rand0)
-                x0_rand_array[i] = self._pdf_x0[ival] + idelta
+                x0_rand_array[i] = self._x0[ival] + idelta
 
 
                 ival1,idelta1,pendent1 = self._get_index1(y1[i],ival)
-                x1_rand_array[i] = self._pdf_x1[ival1] + idelta1
+                x1_rand_array[i] = self._x1[ival1] + idelta1
             return x0_rand_array,x1_rand_array
         else:
             pass
             # ival,idelta,pendent = self._get_index(random_in_0_1)
-            # return self._pdf_x[ival] + idelta
+            # return self._x[ival] + idelta
 
     # def get_sampled_and_histogram(self,random_in_0_1,bins=51,range=None):
     #     pass
     #     # s1 = self.get_sampled(random_in_0_1)
     #     # if range is None:
-    #     #     range = [self._pdf_x.min(),self._pdf_x.max()]
+    #     #     range = [self._x.min(),self._x.max()]
     #     # h,h_edges = numpy.array(numpy.histogram(s1,bins=bins,range=range))
     #     # h_center = h_edges[0:-1] + 0.5*numpy.diff(h_edges)
     #     # return s1,h,h_center
@@ -178,8 +178,8 @@ class Sampler2D(object):
     #     # cdf_rand_array = numpy.random.random(npoints)
     #     # return s1.get_sampled_and_histogram(cdf_rand_array,bins=bins,range=range)
 
-    def _set_default_pdf_x(self):
-        self._pdf_x = numpy.arange(self._pdf.size[0])
+    def _set_default_x(self):
+        self._x = numpy.arange(self._pdf.size[0])
 
     def _set_default_pdf_y(self):
         self._pdf_y = numpy.arange(self._pdf.size[1])
@@ -235,7 +235,7 @@ def test_2d():
     from scipy.ndimage import imread
     from srxraylib.plot.gol import plot, plot_image, plot_scatter
 
-    image_data = imread("/Users/srio/OASYS1.1/shadow3-scripts/SAMPLING/test1.jpg",flatten=True)
+    image_data = imread("test1.jpg",flatten=True)
     image_data = numpy.flip(image_data.T,1)
     print(image_data.min(),image_data.max())
     image_data = image_data.max() - image_data
