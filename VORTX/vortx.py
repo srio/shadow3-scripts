@@ -40,21 +40,21 @@ if __name__ == "__main__":
     index_x2=573
     index_y2=200
     #
-    h5file = "vx_id16a_D.h5"
-    index_x2=600
-    index_y2=185
-
-    h5file = "vx_id16a_C.h5"
-    index_x2=590
-    index_y2=167
+    # h5file = "vx_id16a_D.h5"
+    # index_x2=600
+    # index_y2=185
     #
-    h5file = "vx_id16a_B.h5"
-    index_x2=535
-    index_y2=183
+    # h5file = "vx_id16a_C.h5"
+    # index_x2=590
+    # index_y2=167
+    #
+    # h5file = "vx_id16a_B.h5"
+    # index_x2=535
+    # index_y2=183
     # #
-    h5file = "vx_id16a_A.h5"
-    index_x2=1007//2
-    index_y2=335//2
+    # h5file = "vx_id16a_A.h5"
+    # index_x2=1007//2
+    # index_y2=335//2
 
 
     if index_x2 is None:
