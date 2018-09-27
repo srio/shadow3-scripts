@@ -1,0 +1,128 @@
+import numpy
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.colors import Normalize
+
+import h5py
+
+def plot_with_transparency_four(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta=6,show=True,savefig=None):
+
+    cmap = plt.cm.hsv
+
+
+    colors_list = []
+
+    for i,arr1 in enumerate(arr1_list):
+        phases = numpy.angle(arr1)
+
+
+        colors = Normalize(phases.min(),phases.max(),clip=True)(phases)
+        colors = cmap(colors)
+
+
+        weights = numpy.abs(arr1)**2
+        print("Extrema for weights: ",weights.min(),weights.max())
+
+
+        rmax = weights.max()
+        rmin = rmax/(10**delta) # 1e23
+        weights = np.where(weights < rmin, rmin, weights)
+        weights = np.where(weights > rmax, rmax, weights)
+
+        weights = numpy.log10(weights)
+
+        weights -= weights.min()
+        weights /= weights.max()
+
+
+        colors[..., -1] = weights
+
+        colors_list.append(colors)
+
+
+    w=10
+    h=10
+    fig=plt.figure(figsize=(12, 8))
+    columns = int(numpy.sqrt(DISTANCES.size))
+    rows = columns
+    for i in range(1, columns*rows +1):
+        img = colors_list[i-1]
+        ax = fig.add_subplot(rows, columns, i)
+        print(">>>>",ax)
+        ax.imshow(img, interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
+        if i != 1:
+            ax.xaxis.set_major_formatter(plt.NullFormatter())
+            ax.yaxis.set_major_formatter(plt.NullFormatter())
+        else:
+            # plt.xlabel("X [$\mu$m]")
+            # plt.ylabel("Y [$\mu$m]")
+            pass
+        plt.title("D=%5.3f m"%DISTANCES[i-1])
+
+
+    # plt.show()
+
+
+    # fig, ax = plt.subplots(5, 5, figsize=(8, 8))
+    # print(ax[0])
+    # fig.subplots_adjust(hspace=0, wspace=0)
+    #
+    #
+    # ax[0,0].imshow(colors_list[0], interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
+    # ax[0,0].xaxis.set_major_formatter(plt.NullFormatter())
+    #
+    # ax[1].imshow(colors_list[1], interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
+    # ax[1].xaxis.set_major_formatter(plt.NullFormatter())
+    #
+    # ax[2].imshow(colors_list[2], interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
+    # ax[2].xaxis.set_major_formatter(plt.NullFormatter())
+    #
+    # ax[3].imshow(colors_list[3], interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
+
+
+
+    if savefig is not None:
+        plt.savefig(savefig)
+        print("File written to disk ",savefig)
+
+    if show: plt.show()
+
+
+if __name__ == "__main__""":
+
+    up_to_mode = 99
+    h5file_root = "vx_id16a_C5_propagated_neighbour_mode%04d"%up_to_mode
+    h5file = h5file_root+".h5"
+
+    f = h5py.File(h5file,'r')
+
+    DISTANCES = f["DISTANCES"].value
+    list_with_images = []
+    for i in range(DISTANCES.size):
+        print("trying to read: ", "uptomode%04d_%04d/Wcomplex/image_data"%(up_to_mode,i))
+        list_with_images.append(f["uptomode%04d_%04d/Wcomplex/image_data"%(up_to_mode,i)].value)
+
+        print(list_with_images[i].shape)
+
+    x = f["uptomode%04d_0000/Wcomplex/axis_x"%up_to_mode].value
+    y = f["uptomode%04d_0000/Wcomplex/axis_y"%up_to_mode].value
+
+
+
+
+    f.close()
+
+    plot_with_transparency_four(list_with_images,DISTANCES,extent=(-25,25,-10,10),delta=8,savefig=h5file_root+".png")
+
+    #
+    #
+    # w=10
+    # h=10
+    # fig=plt.figure(figsize=(8, 8))
+    # columns = 4
+    # rows = 5
+    # for i in range(1, columns*rows +1):
+    #     img = np.random.randint(10, size=(h,w))
+    #     fig.add_subplot(rows, columns, i)
+    #     plt.imshow(img)
+    # plt.show()
