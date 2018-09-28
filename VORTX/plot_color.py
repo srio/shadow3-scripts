@@ -12,7 +12,15 @@ import pylab as plt
 from matplotlib.colors import Normalize
 
 
-def plot_with_transparency_one(arr1,extent=(-75,75,-15,15),delta=6,cmap=None,show=True):
+        #arr1,extent=(-75,75,-15,15),delta=6,cmap=None,show=True):
+def plot_with_transparency_one(arr0,extent=None,delta=6,cmap=None,show=True):
+
+    from colorsys import hls_to_rgb
+    from matplotlib.colors import hsv_to_rgb
+
+
+
+    arr1 = arr0.T
 
     cmap = plt.cm.hsv
 
@@ -28,8 +36,8 @@ def plot_with_transparency_one(arr1,extent=(-75,75,-15,15),delta=6,cmap=None,sho
 
     rmax = weights.max()
     rmin = rmax/(10**delta) # 1e23
-    weights = np.where(weights < rmin, rmin, weights)
-    weights = np.where(weights > rmax, rmax, weights)
+    weights = numpy.where(weights < rmin, rmin, weights)
+    weights = numpy.where(weights > rmax, rmax, weights)
 
     weights = numpy.log10(weights)
 
@@ -40,14 +48,20 @@ def plot_with_transparency_one(arr1,extent=(-75,75,-15,15),delta=6,cmap=None,sho
 
     fig = plt.figure()
 
-    plt.imshow(colors, interpolation='none',cmap=cmap,aspect='equal',
-               extent=extent)
+    plt.imshow(colors, interpolation='none',cmap=cmap,aspect='equal',origin='lower')
 
-    if cmap is not None:
-        plt.colorbar()
+
+    plt.ylim( (x.min(),x.max()) )
+    plt.ylim( (y.min(),y.max()) )
+
+    # if cmap is not None:
+    #     plt.colorbar()
+
     if show: plt.show()
 
-def plot_with_transparency_four(arr1_list,extent=(-75,75,-15,15),delta=6,show=True,savefig="/tmp/1.png"):
+
+
+def plot_with_transparency_four(arr1_list,x,y,extent=(-75,75,-15,15),delta=6,show=True,savefig="/tmp/1.png"):
 
     cmap = plt.cm.hsv
 
@@ -98,8 +112,13 @@ def plot_with_transparency_four(arr1_list,extent=(-75,75,-15,15),delta=6,show=Tr
 
     ax[3].imshow(colors_list[3], interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
 
+
+    plt.xlim( (x.min(),x.max()) )
+    plt.ylim( (y.min(),y.max()) )
+
     plt.xlabel("X [$\mu$m]")
     plt.ylabel("Y [$\mu$m]")
+
 
     if savefig is not None:
         plt.savefig(savefig)
@@ -110,7 +129,7 @@ def plot_with_transparency_four(arr1_list,extent=(-75,75,-15,15),delta=6,show=Tr
 
 if __name__ == "__main__":
 
-    h5file_root = "vx_id16a_B"
+    h5file_root = "vx_id16a_C5_propagated"
     h5file = h5file_root+".h5"
 
     f = h5py.File(h5file,'r')
@@ -124,9 +143,10 @@ if __name__ == "__main__":
     y    = f["uptomode0000/Wcomplex/axis_y"].value
     f.close()
 
-    plot_with_transparency_four([arr1,arr2,arr3,arr4],extent=(-25,25,-10,10),delta=8,savefig=h5file_root+".png")
+    print("Data limits X: ",x.min(),x.max()," Y: ",y.min(),y.max())
+    plot_with_transparency_four([arr1,arr2,arr3,arr4],x,y,delta=8,savefig=h5file_root+".png")#,extent=(-25,25,-10,10),
 
-    # plot_with_transparency_one(arr3,cmap='hsv')
+    # plot_with_transparency_one(arr2,cmap='hsv',extent=(-25,25,-10,10))
 
     # tmp = numpy.angle(arr3)
     # print(tmp.shape)

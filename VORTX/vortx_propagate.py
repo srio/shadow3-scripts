@@ -254,19 +254,16 @@ if __name__ == "__main__":
         distance = 1.0
         coordinate_x = 125.47e-6 / 30.0 * distance
         coordinate_y = 312.78e-6 / 30.0 * distance
-        index_max = 99
         zoom = (1.0,1.0)
     elif point == "C5":
         distance = 5.0
         coordinate_x = 125.47e-6 / 30.0 * distance
         coordinate_y = 312.78e-6 / 30.0 * distance
-        index_max = 99
         zoom = (2.0,2.0)
     elif point == "C100":
         distance = 100.0
         coordinate_x = 125.47e-6 / 30.0 * distance
         coordinate_y = 312.78e-6 / 30.0 * distance
-        index_max = 99
         zoom = (10.0,40.0)
     else:
         raise Exception("Point not found!")
@@ -276,13 +273,6 @@ if __name__ == "__main__":
     af  = CompactAFReader.initialize_from_file(filename_ebs)
 
 
-
-    #
-    # propagate
-    #
-
-
-    afp = propagate(af,distance=distance,index_max=index_max,zoom=zoom)
 
     # afp = propagate(af,distance=10.0,index_max=index_max,zoom=(2.0,5.0))
     #
@@ -301,7 +291,8 @@ if __name__ == "__main__":
     # get indices
     #
 
-
+    # first propagate a few modes only to check there are no errors
+    afp = propagate(af,distance=distance,index_max=5,zoom=zoom)
 
     h5file = "vx_id16a_%s_propagated.h5"%point
 
@@ -319,6 +310,16 @@ if __name__ == "__main__":
     print("Using indices: ",index_x2,index_y2," out of ",afp.x_coordinates().size,afp.y_coordinates().size,
           "ratio: ",index_x2/afp.x_coordinates().size,index_y2/afp.y_coordinates().size)
 
+
+
+    #
+    # propagate
+    #
+
+
+
+    # now propagate all modes
+    afp = propagate(af,distance=distance,index_max=index_max,zoom=zoom)
 
 
     tmp = W_at_x2x2(afp,index_x2=index_x2,index_y2=index_y2,index_max=index_max)
