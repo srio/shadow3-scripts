@@ -7,7 +7,7 @@ from srxraylib.plot.gol import plot_image, plot
 
 import h5py
 
-from vortx_propagate import AFpropagated, W_at_x2x2, propagate, apply_two_apertures
+from vortx_propagate import AFpropagated #, W_at_x2x2, propagate, apply_two_apertures
 #
 # from plot_color import plot_with_transparency_one
 
@@ -186,7 +186,7 @@ def plot_color_table(orientation='horizontal'):
 
 if __name__ == "__main__":
 
-
+    write_h5 = True
     filename_ebs="/scisoft/data/srio/COMSYL/ID16/id16s_ebs_u18_1400mm_1h_new_s1.0.npy"
 
     point = "J" #"C5"
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     #
     patch_shape = "Ellipse"
     center1 = [coordinate_x,coordinate_y]
-    width1 = [5e-6,5e-6]
+    width1 = [4e-6,4e-6]
     center2 = [10e-6,25e-6] # [5e-6,25e-6]
     width2 = width1
 
@@ -262,9 +262,10 @@ if __name__ == "__main__":
     #
 
     # first propagate a few modes only to check there are no errors
-    afp = propagate(af,distance=distance,index_max=1,zoom=zoom)
+    afp = AFpropagated.propagate(af,distance=distance,index_max=1,zoom=zoom)
 
-    h5file = "vx_id16a_%s_propagated.h5"%point
+    if write_h5:
+        h5file = "vx_id16a_%s_propagated.h5"%point
 
     print("X: start, step, points",afp.x_coordinates()[0],afp.x_coordinates()[1] - afp.x_coordinates()[0],afp.x_coordinates().size)
     print("Y: start, step, points",afp.y_coordinates()[0],afp.y_coordinates()[1] - afp.y_coordinates()[0],afp.y_coordinates().size)
@@ -281,16 +282,18 @@ if __name__ == "__main__":
           "ratio: ",index_x2/afp.x_coordinates().size,index_y2/afp.y_coordinates().size)
 
 
+    if write_h5:
+        h5w = AFpropagated.h5_initialize("tmp.h5")
     #
     # propagate
     #
 
     # now propagate all modes
-    afp = propagate(af,distance=distance,index_max=index_max,zoom=zoom)
+    afp = AFpropagated.propagate(af,distance=distance,index_max=index_max,zoom=zoom)
 
 
     # plot CSD with slits
-    tmp = W_at_x2x2(afp,index_x2=index_x2,index_y2=index_y2,index_max=index_max)
+    tmp = afp.W_at_x2x2(index_x2=index_x2,index_y2=index_y2,index_max=index_max)
     x = afp.x_coordinates()
     y = afp.y_coordinates()
 
@@ -301,15 +304,18 @@ if __name__ == "__main__":
                 patch1_center=patch1_center,patch1_width=patch1_width,
                 patch2_center=patch2_center,patch2_width=patch1_width)
 
+    if write_h5:
+        afp.h5w = h5w
+        afp.h5_W_at_x2x2(index_x2=index_x2,index_y2=index_y2,index_max=index_max)
 
     #
     # slits
     #
 
-    afp_cut = apply_two_apertures(afp,index_max=index_max,patch_shape=patch_shape,
+    afp_cut = afp.apply_two_apertures(index_max=index_max,patch_shape=patch_shape,
                                          center1=center1,width1=width1,center2=center2,width2=width2)
 
-    tmp = W_at_x2x2(afp_cut,index_x2=index_x2,index_y2=index_y2,index_max=index_max)
+    tmp = afp_cut.W_at_x2x2(index_x2=index_x2,index_y2=index_y2,index_max=index_max)
     x = afp.x_coordinates()
     y = afp.y_coordinates()
 
@@ -319,7 +325,7 @@ if __name__ == "__main__":
 
 
     # plot CSD with slits
-    tmp = W_at_x2x2(afp_cut,index_x2=index_x2,index_y2=index_y2,index_max=index_max)
+    tmp = afp_cut.W_at_x2x2(index_x2=index_x2,index_y2=index_y2,index_max=index_max)
     x = afp.x_coordinates()
     y = afp.y_coordinates()
 
@@ -335,7 +341,7 @@ if __name__ == "__main__":
     #
 
     # afpp = propagate(afp_cut,distance=15,index_max=index_max,zoom=(2.0,2.0))
-    afpp = propagate(afp_cut,distance=35,index_max=index_max,zoom=(2.0,5.0))
+    afpp = AFpropagated.propagate(afp_cut,distance=35,index_max=index_max,zoom=(2.0,5.0))
 
 
     tmp = afpp.get_intensity(index_max) #W_at_x2x2(afpp,index_x2=index_x2,index_y2=index_y2,index_max=index_max)
@@ -354,63 +360,20 @@ if __name__ == "__main__":
     #
 
 
+
+
+    if write_h5:
+
+        afpp.h5w = h5w
+
+        afpp.h5_get_intensity(index_max,"intensity_at_image")
+
+        for i in range(afpp.number_modes()):
+            print("adding to h5 file mode : ",i)
+            afpp.h5_add_mode(i)
+
+
     plt.show()
 
-    # plot_with_transparency_one(tmp,extent=(-25,25,-10,10),delta=8,show=True)
-
-
-    #
-
-    # h5w = H5SimpleWriter.initialize_file(h5file,creator="vortx_propagate.py")
-    # # h5_initialize(h5file,creator="vortx.py")
-    # h5w.add_key("r2_indices",[index_x2,index_y2])
-    # h5w.add_key("r2",[afp.x_coordinates()[index_x2],afp.y_coordinates()[index_y2]])
-    #
-    #
-    # x_ebs = numpy.arange(afp.number_modes())
-    # y_ebs = numpy.abs(afp.occupation_array())
-    #
-    # # plot(x_ebs,y_ebs)
-    #
-    # if index_max > 100:
-    #     t = numpy.array( (0,1,2,3,4,5,6,7,8,9,
-    #                       19,29,39,49,59,69,79,89,99,
-    #                       199,299,399,499,599,699,799,899,999,
-    #                       1099) )
-    # else:
-    #     t = numpy.array( (0,1,2,3,4,5,6,7,8,9,
-    #                       19,29,39,49,59,69,79,89,99, ))
-    #
-    #
-    # # t = numpy.array( (0,1,2,3,4,5,6,7,8,9) )
-    #
-    # for index_max in t:
-    #     print("Calculating mode index %d"%index_max)
-    #     tmp = W_at_x2x2(afp,index_x2=index_x2,index_y2=index_y2,index_max=index_max)
-    #
-    #     h5w.create_entry("uptomode%04d"%index_max,nx_default="SpectralDensity")
-    #     h5w.add_key("r2_indices",[index_x2,index_y2], entry_name="uptomode%04d"%index_max)
-    #     h5w.add_key("r2",[afp.x_coordinates()[index_x2],afp.y_coordinates()[index_y2]], entry_name="uptomode%04d"%index_max)
-    #
-    #     h5w.add_image(tmp,1e3*afp.x_coordinates(),1e3*afp.y_coordinates(),
-    #                  entry_name="uptomode%04d"%index_max,
-    #                  image_name="Wcomplex",title_x="X [mm]",title_y="Y [mm]")
-    #
-    #     h5w.add_image(numpy.absolute(tmp),1e3*afp.x_coordinates(),1e3*afp.y_coordinates(),
-    #                  entry_name="uptomode%04d"%index_max,
-    #                  image_name="Wamplitude",title_x="X [mm]",title_y="Y [mm]")
-    #
-    #     h5w.add_image(numpy.angle(tmp),1e3*afp.x_coordinates(),1e3*afp.y_coordinates(),
-    #                  entry_name="uptomode%04d"%index_max,
-    #                  image_name="Wphase",title_x="X [mm]",title_y="Y [mm]")
-    #
-    #     h5w.add_image(afp.get_intensity(index_max),1e3*afp.x_coordinates(),1e3*afp.y_coordinates(),
-    #                  entry_name="uptomode%04d"%index_max,
-    #                  image_name="SpectralDensity",title_x="X [mm]",title_y="Y [mm]")
-    #
-    # print("File written to disk: ",h5file)
-
-
-    # plot_color_table()
 
     print("coordinates [um]",1e6*coordinate_x,1e6*coordinate_y)
