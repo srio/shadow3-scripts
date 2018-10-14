@@ -12,130 +12,209 @@ import pylab as plt
 from matplotlib.colors import Normalize
 
 
+        #arr1,extent=(-75,75,-15,15),delta=6,cmap=None,show=True):
+def plot_with_transparency_one(arr0,extent=None,delta=6,cmap=None,show=True):
 
-# def colorize(z):
-#     n,m = z.shape
-#     c = np.zeros((n,m,3))
-#     c[np.isinf(z)] = (1.0, 1.0, 1.0)
-#     c[np.isnan(z)] = (0.5, 0.5, 0.5)
-#
-#     idx = ~(np.isinf(z) + np.isnan(z))
-#     A = np.angle(z[idx]) # (np.angle(z[idx]) + np.pi) / (2*np.pi)
-#     # A = (A + 0.5) % 1.0
-#     B = 1.0 - 1.0/(1.0+abs(z[idx])**0.3)
-#     c[idx] = [hls_to_rgb(a, b, 0.8) for a,b in zip(A,B)]
-#     return c
-def Complex2HSV(z, rmin=None, rmax=None, hue_start=0):
-    # get amplidude of z and limit to [rmin, rmax]
-    amp = np.log10(np.abs(z)**2)
-    amp -= amp.min()
-    print("amp interval", amp.min(),amp.max())
-    if rmin is not None:
-        amp = np.where(amp < rmin, rmin, amp)
-    if rmax is not None:
-        amp = np.where(amp > rmax, rmax, amp)
-
-    # ph = np.angle(z, deg=1) + hue_start
-    # HSV are values in range [0,1]
-    h = (np.angle(z, deg=1) %360) / 360 # (ph % 360) / 360
-    s = 0.85 * np.ones_like(h)
-    v = amp / amp.max()# (amp -rmin) / (rmax - rmin)
-    return hsv_to_rgb(np.dstack((h,s,v)))
-
-# def colorize(z):
-#     r = np.abs(z)
-#     arg = np.angle(z)
-#
-#     h = (arg + np.pi)  / (2 * np.pi) + 0.5
-#     l = 1.0 - 1.0/(1.0 + r**0.3)
-#     s = 0.8
-#
-#     c = np.vectorize(hls_to_rgb) (h,l,s) # --> tuple
-#     c = np.array(c)  # -->  array of (3,n,m) shape, but need (n,m,3)
-#     c = c.swapaxes(0,2)
-#     return c
+    from colorsys import hls_to_rgb
+    from matplotlib.colors import hsv_to_rgb
 
 
-if __name__ == "__main__":
 
-    h5file = "vx_id16a_A.h5"
+    arr1 = arr0.T
 
-    f = h5py.File(h5file,'r')
-
-    arr1 = f["uptomode0/Wcomplex/image_data"].value
-    x = f["uptomode0/Wcomplex/axis_x"].value
-    y = f["uptomode0/Wcomplex/axis_y"].value
-    f.close()
-    #
-    # print(arr1.shape,x.shape,y.shape)
-    #
-    #
-    # plot_image(numpy.angle(arr1.T),x,y,cmap='hsv',
-    #             xrange=[-0.05,0.05],xtitle="X [mm]",
-    #             yrange=[-0.05,0.05],ytitle="Y [mm]",)
-
-
-    # N = 1024
-    # x, y = np.ogrid[-4:4:N*1j, -4:4:N*1j]
-    # z = x + 1j*y
-
-    # img = Complex2HSV(z, 0, 4)
-    # img = Complex2HSV(arr1, 10,50)
-
-    # Plot the array "A" using colorize
-
-    # cmap = plt.cm.RdYlBu
     cmap = plt.cm.hsv
+
     phases = numpy.angle(arr1)
 
 
     colors = Normalize(phases.min(),phases.max(),clip=True)(phases)
-    print(">>>> colors 0",colors.shape)
     colors = cmap(colors)
-    print(">>>> colors 1",colors.shape)
-
-
 
 
     weights = numpy.abs(arr1)**2
-    print("Extrema for weights: ",weights.min(),weights.max())
 
 
-    rmin = 1e23
     rmax = weights.max()
-    weights = np.where(weights < rmin, rmin, weights)
-    weights = np.where(weights > rmax, rmax, weights)
+    rmin = rmax/(10**delta) # 1e23
+    weights = numpy.where(weights < rmin, rmin, weights)
+    weights = numpy.where(weights > rmax, rmax, weights)
 
-
-    print("Extrema for weights: ",weights.min(),weights.max())
     weights = numpy.log10(weights)
-    print("Extrema for weights: ",weights.min(),weights.max())
 
     weights -= weights.min()
     weights /= weights.max()
 
-    print("Extrema for weights: ",weights.min(),weights.max())
+    colors[..., -1] = weights
 
-    # rmin = 0.5
-    # rmax = 0.6
+    fig = plt.figure()
+
+    plt.imshow(colors, interpolation='none',cmap=cmap,aspect='equal',origin='lower')
+
+
+    plt.ylim( (x.min(),x.max()) )
+    plt.ylim( (y.min(),y.max()) )
+
+    # if cmap is not None:
+    #     plt.colorbar()
+
+    if show: plt.show()
+
+
+
+def plot_with_transparency_four(arr1_list,x,y,extent=(-75,75,-15,15),delta=6,show=True,savefig="/tmp/1.png"):
+
+    cmap = plt.cm.hsv
+
+
+    colors_list = []
+
+    for i,arr1 in enumerate(arr1_list):
+        phases = numpy.angle(arr1)
+
+
+        colors = Normalize(phases.min(),phases.max(),clip=True)(phases)
+        colors = cmap(colors)
+
+
+        weights = numpy.abs(arr1)**2
+        print("Extrema for weights: ",weights.min(),weights.max())
+
+
+        rmax = weights.max()
+        rmin = rmax/(10**delta) # 1e23
+        weights = np.where(weights < rmin, rmin, weights)
+        weights = np.where(weights > rmax, rmax, weights)
+
+        weights = numpy.log10(weights)
+
+        weights -= weights.min()
+        weights /= weights.max()
+
+
+        colors[..., -1] = weights
+
+        colors_list.append(colors)
+
+
+    fig, ax = plt.subplots(4, 1, figsize=(8, 8))
+    print(ax[0])
+    fig.subplots_adjust(hspace=0, wspace=0)
+
+
+    ax[0].imshow(colors_list[0], interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
+    ax[0].xaxis.set_major_formatter(plt.NullFormatter())
+
+    ax[1].imshow(colors_list[1], interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
+    ax[1].xaxis.set_major_formatter(plt.NullFormatter())
+
+    ax[2].imshow(colors_list[2], interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
+    ax[2].xaxis.set_major_formatter(plt.NullFormatter())
+
+    ax[3].imshow(colors_list[3], interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
+
+
+    plt.xlim( (x.min(),x.max()) )
+    plt.ylim( (y.min(),y.max()) )
+
+    plt.xlabel("X [$\mu$m]")
+    plt.ylabel("Y [$\mu$m]")
+
+
+    if savefig is not None:
+        plt.savefig(savefig)
+        print("File written to disk ",savefig)
+
+    if show: plt.show()
+
+
+if __name__ == "__main__":
+
+    h5file_root = "vx_id16a_C5_propagated"
+    h5file = h5file_root+".h5"
+
+    f = h5py.File(h5file,'r')
+
+    arr1 = f["uptomode0000/Wcomplex/image_data"].value
+    arr2 = f["uptomode0009/Wcomplex/image_data"].value
+    arr3 = f["uptomode0099/Wcomplex/image_data"].value
+    arr4 = f["uptomode0999/Wcomplex/image_data"].value
+
+    x    = f["uptomode0000/Wcomplex/axis_x"].value
+    y    = f["uptomode0000/Wcomplex/axis_y"].value
+    f.close()
+
+    print("Data limits X: ",x.min(),x.max()," Y: ",y.min(),y.max())
+    plot_with_transparency_four([arr1,arr2,arr3,arr4],x,y,delta=8,savefig=h5file_root+".png")#,extent=(-25,25,-10,10),
+
+    # plot_with_transparency_one(arr2,cmap='hsv',extent=(-25,25,-10,10))
+
+    # tmp = numpy.angle(arr3)
+    # print(tmp.shape)
+    # plot_image(tmp.T,cmap='hsv')
+
+    #
+    # cmap = plt.cm.hsv
+    # phases = numpy.angle(arr1)
+    #
+    #
+    # colors = Normalize(phases.min(),phases.max(),clip=True)(phases)
+    # # colors = (phases)
+    # print(">>>> colors 0",colors.shape)
+    # colors = cmap(colors)
+    # print(">>>> colors 1",colors.shape)
+    #
+    #
+    #
+    # delta = 6
+    # weights = numpy.abs(arr1)**2
+    # print("Extrema for weights: ",weights.min(),weights.max())
+    #
+    #
+    # rmax = weights.max()
+    # rmin = rmax/(10**delta) # 1e23
     # weights = np.where(weights < rmin, rmin, weights)
     # weights = np.where(weights > rmax, rmax, weights)
+    #
+    #
+    # print("Extrema for weights: ",weights.min(),weights.max())
+    # weights = numpy.log10(weights)
+    # print("Extrema for weights: ",weights.min(),weights.max())
+    #
     # weights -= weights.min()
     # weights /= weights.max()
-
-
-
-
-    print(">>>",colors.shape,phases.shape,weights.shape)
-
-
-    colors[..., -1] = weights
-    print(">>>> colors 2",colors.shape)
-
-
-    import pylab as plt
-    plt.imshow(colors, interpolation='none',cmap=cmap)
-    plt.colorbar()
-    plt.show()
-
-    # plot_image(weights.T)
+    #
+    # # weights = weights * 2 * np.pi + np.pi
+    #
+    # print("Extrema for weights: ",weights.min(),weights.max())
+    #
+    # # rmin = 0.5
+    # # rmax = 0.6
+    # # weights = np.where(weights < rmin, rmin, weights)
+    # # weights = np.where(weights > rmax, rmax, weights)
+    # # weights -= weights.min()
+    # # weights /= weights.max()
+    #
+    #
+    #
+    #
+    # print(">>>",colors.shape,phases.shape,weights.shape)
+    #
+    #
+    # colors[..., -1] = weights
+    # print(">>>> colors 2",colors.shape)
+    #
+    # fig = plt.figure()
+    # plt.subplot(411)
+    #
+    # plt.imshow(colors, interpolation='none',cmap=cmap,aspect='equal',
+    #            extent=(-75,75,-15,15))
+    #
+    #
+    # # plt.colorbar()
+    # # plt.imshow(weights, interpolation='none',cmap=cmap)
+    # # plt.ylim( (x.min(),x.max()) )
+    # # plt.ylim( (y.min(),y.max()) )
+    #
+    # plt.show()
+    #
+    # # plot_image(colors.T,aspect='auto')
