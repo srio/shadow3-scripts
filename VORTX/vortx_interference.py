@@ -186,7 +186,7 @@ def plot_color_table(orientation='horizontal'):
 
 if __name__ == "__main__":
 
-    write_h5 = True
+    write_h5 = False
     filename_ebs="/scisoft/data/srio/COMSYL/ID16/id16s_ebs_u18_1400mm_1h_new_s1.0.npy"
 
     point = "J" #"C5"
@@ -224,8 +224,8 @@ if __name__ == "__main__":
         zoom = (10.0,40.0)
     elif point == "J":
         distance = 5.0
-        coordinate_x = -10.0e-6 # 0.33 * 125.47e-6 / 30.0 * distance
-        coordinate_y = -25.0e-6 # 0.33 * 312.78e-6 / 30.0 * distance
+        coordinate_x = -10.0e-6
+        coordinate_y = -25.0e-6 # -25.0e-6
         zoom = (2.0,2.0)
     else:
         raise Exception("Point not found!")
@@ -236,9 +236,9 @@ if __name__ == "__main__":
     #
     patch_shape = "Ellipse"
     center1 = [coordinate_x,coordinate_y]
-    width1 = [4e-6,4e-6]
-    center2 = [10e-6,25e-6] # [5e-6,25e-6]
-    width2 = width1
+    width1 = [1.2*3e-6,1.2*3e-6]
+    center2 = [10e-6,25e-6] #[5e-6,25e-6] #   [16e-6,23e-6]
+    width2 = [3e-6,3e-6]
 
     patch1_center = [1e6*center1[0],1e6*center1[1]]
     patch1_width  = [ 1e6*width1[0], 1e6*width1[1]]
@@ -252,7 +252,6 @@ if __name__ == "__main__":
     #
     # load CSD
     #
-
 
     af  = CompactAFReader.initialize_from_file(filename_ebs)
 
@@ -302,7 +301,7 @@ if __name__ == "__main__":
                 xtitle="X [um, %d pixels]"%x.size,ytitle="Y [um, %d pixels]"%y.size,cmap='hsv',show=False,
                 xrange=[-150,150],yrange=[-100,100],aspect='equal',add_colorbar=False,patch_shape=patch_shape,
                 patch1_center=patch1_center,patch1_width=patch1_width,
-                patch2_center=patch2_center,patch2_width=patch1_width)
+                patch2_center=patch2_center,patch2_width=patch2_width)
 
     if write_h5:
         afp.h5w = h5w
@@ -340,8 +339,8 @@ if __name__ == "__main__":
     # propagate again
     #
 
-    # afpp = propagate(afp_cut,distance=15,index_max=index_max,zoom=(2.0,2.0))
-    afpp = AFpropagated.propagate(afp_cut,distance=35,index_max=index_max,zoom=(2.0,5.0))
+    # afpp = AFpropagated.propagate(afp_cut,distance=5,index_max=index_max,zoom=(1.0,1.0))
+    afpp = AFpropagated.propagate(afp_cut,distance=25,index_max=index_max,zoom=(2.0,5.0))
 
 
     tmp = afpp.get_intensity(index_max) #W_at_x2x2(afpp,index_x2=index_x2,index_y2=index_y2,index_max=index_max)
