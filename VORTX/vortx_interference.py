@@ -23,7 +23,8 @@ import matplotlib.patches as patches
 def plot_image_with_transparency(
             *positional_parameters,title="TITLE",xtitle=r"X",ytitle=r"Y",
             transparency_log=True,delta=6,
-            xrange=None, yrange=None,cmap=None,aspect=None,add_colorbar=True,figsize=None,show=True,
+            xrange=None, yrange=None,cmap=None,aspect=None,add_colorbar=True,figsize=None,
+            fileout=None, show=True,
             patch_shape=None,
             patch1_center=None,patch1_width=None,
             patch2_center=None,patch2_width=None ):
@@ -144,6 +145,9 @@ def plot_image_with_transparency(
     #
     # if add_colorbar:
     #     plt.colorbar()
+    if fileout is not None:
+        plt.savefig(fileout,dpi=300)
+        print("File written to disk: %s"%fileout)
 
     if show:
         plt.show()
@@ -186,14 +190,16 @@ def plot_color_table(orientation='horizontal'):
 
 if __name__ == "__main__":
 
+    point = "D"
+    index_max = 99
+    distance = 30.0
+    zoom = (6.0,16.0)
+
     write_h5 = False
     filename_ebs="/scisoft/data/srio/COMSYL/ID16/id16s_ebs_u18_1400mm_1h_new_s1.0.npy"
+    # filename_png_root="/tmp/interference_%s%_uptomode%04d"
 
-    point = "J" #"C5"
 
-    distance = 30.0
-    index_max = 19
-    zoom = (6.0,16.0)
 
     if point == "A":
         coordinate_x = 0.0
@@ -204,9 +210,9 @@ if __name__ == "__main__":
     elif point == "C":
         coordinate_x = 125.47e-6
         coordinate_y = 312.78e-6
-    elif point == "D":
-        coordinate_x = -7e-6
-        coordinate_y = 31e-6
+    # elif point == "D":
+    #     coordinate_x = -7e-6
+    #     coordinate_y = 31e-6
     elif point == "C1":
         distance = 1.0
         coordinate_x = 125.47e-6 / 30.0 * distance
@@ -222,7 +228,7 @@ if __name__ == "__main__":
         coordinate_x = 125.47e-6 / 30.0 * distance
         coordinate_y = 312.78e-6 / 30.0 * distance
         zoom = (10.0,40.0)
-    elif point == "J":
+    elif point == "D":
         distance = 5.0
         coordinate_x = -10.0e-6
         coordinate_y = -25.0e-6 # -25.0e-6
@@ -296,12 +302,16 @@ if __name__ == "__main__":
     x = afp.x_coordinates()
     y = afp.y_coordinates()
 
-    plot_image_with_transparency(numpy.angle(tmp),numpy.abs(tmp)**2,1e6*x,1e6*y,
-                title="uptomode%04d"%index_max,
-                xtitle="X [um, %d pixels]"%x.size,ytitle="Y [um, %d pixels]"%y.size,cmap='hsv',show=False,
-                xrange=[-150,150],yrange=[-100,100],aspect='equal',add_colorbar=False,patch_shape=patch_shape,
-                patch1_center=patch1_center,patch1_width=patch1_width,
-                patch2_center=patch2_center,patch2_width=patch2_width)
+    if True:
+        plot_image_with_transparency(numpy.angle(tmp),numpy.abs(tmp)**2,1e6*x,1e6*y,
+                    title="up to mode %d"%index_max,
+                    xtitle="X [um, %d pixels]"%x.size,ytitle="Y [um, %d pixels]"%y.size,cmap='hsv',show=False,
+                    # xrange=[-150,150],yrange=[-100,100],
+                    xrange=[-75,75],yrange=[-75,75],fileout="/tmp/interference_%s_uptomode%04d_csd.png"%(point,index_max),
+                    # aspect='equal',add_colorbar=False,fileout="/tmp/tmp1.png",
+                    patch_shape=patch_shape,
+                    patch1_center=patch1_center,patch1_width=patch1_width,
+                    patch2_center=patch2_center,patch2_width=patch2_width)
 
     if write_h5:
         afp.h5w = h5w
@@ -328,12 +338,13 @@ if __name__ == "__main__":
     x = afp.x_coordinates()
     y = afp.y_coordinates()
 
-    plot_image_with_transparency(numpy.angle(tmp),numpy.abs(tmp)**2,1e6*x,1e6*y,
-                title="uptomode%04d"%index_max,
-                xtitle="X [um, %d pixels]"%x.size,ytitle="Y [um, %d pixels]"%y.size,cmap='hsv',show=False,
-                xrange=[-150,150],yrange=[-100,100],aspect='equal',add_colorbar=False,
-                patch1_center=patch1_center,patch1_width=patch1_width,
-                patch2_center=patch2_center,patch2_width=patch1_width)
+    if False:
+        plot_image_with_transparency(numpy.angle(tmp),numpy.abs(tmp)**2,1e6*x,1e6*y,
+                    title="phase of CSD (up to mode %d)"%index_max,
+                    xtitle="X [um, %d pixels]"%x.size,ytitle="Y [um, %d pixels]"%y.size,cmap='hsv',show=False,
+                    xrange=[-150,150],yrange=[-100,100],aspect='equal',add_colorbar=False,
+                    patch1_center=patch1_center,patch1_width=patch1_width,
+                    patch2_center=patch2_center,patch2_width=patch1_width)
 
     #
     # propagate again
@@ -348,13 +359,20 @@ if __name__ == "__main__":
     y = afpp.y_coordinates()
 
 
-    plot_image(numpy.array(tmp),1e6*x,1e6*y,title="Two slits interference",#xrange=[-150,150],yrange=[-100,100],
-                xtitle="X [um, %d pixels]"%x.size,ytitle="Y [um, %d pixels]"%y.size,cmap='hsv',show=False,
-                aspect='equal')
+    if True:
+        plt.show()
+        plot_image(numpy.array(tmp),1e6*x,1e6*y,title="up to mode %d"%index_max,#xrange=[-150,150],yrange=[-100,100],
+                    xtitle="X [um, %d pixels]"%x.size,ytitle="Y [um, %d pixels]"%y.size,cmap='nipy_spectral',show=False,
+                    aspect='equal')
+        fileout="/tmp/interference_%s_uptomode%04d_pattern.png"%(point,index_max)
+        plt.savefig(fileout,dpi=300)
+        print("File written to disk: /%s"%fileout)
+        plt.show()
 
-    plot_image(numpy.log10(tmp),1e6*x,1e6*y,title="Two slits interference - LOG!!",#xrange=[-150,150],yrange=[-100,100],
-                xtitle="X [um, %d pixels]"%x.size,ytitle="Y [um, %d pixels]"%y.size,cmap='hsv',show=False,
-                aspect='equal')
+    if False:
+        plot_image(numpy.log10(tmp),1e6*x,1e6*y,title="Two slits interference - LOG!!",#xrange=[-150,150],yrange=[-100,100],
+                    xtitle="X [um, %d pixels]"%x.size,ytitle="Y [um, %d pixels]"%y.size,cmap='hsv',show=False,
+                    aspect='equal')
     #
     #
 

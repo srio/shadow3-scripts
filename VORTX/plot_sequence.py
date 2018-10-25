@@ -5,7 +5,10 @@ from matplotlib.colors import Normalize
 
 import h5py
 
-def plot_with_transparency_four(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta=6,show=True,savefig=None):
+
+def plot_with_transparency_four(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta=6,
+                                set_xlim=None,set_ylim=None,point_coordinates=None,
+                                show=True,savefig=None):
 
     cmap = plt.cm.hsv
 
@@ -45,19 +48,29 @@ def plot_with_transparency_four(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta
     fig=plt.figure(figsize=(12, 8))
     columns = int(numpy.sqrt(DISTANCES.size))
     rows = columns
+    ax_list = []
     for i in range(1, columns*rows +1):
         img = colors_list[i-1]
         ax = fig.add_subplot(rows, columns, i)
+        ax_list.append(ax)
         print(">>>>",ax)
         ax.imshow(img, interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
-        if i != 1:
+        if i != 7:
             ax.xaxis.set_major_formatter(plt.NullFormatter())
             ax.yaxis.set_major_formatter(plt.NullFormatter())
         else:
-            # plt.xlabel("X [$\mu$m]")
-            # plt.ylabel("Y [$\mu$m]")
-            pass
+            plt.xlabel("X [$\mu$m]")
+            plt.ylabel("Y [$\mu$m]")
+            # pass
         plt.title("D=%5.3f m"%DISTANCES[i-1])
+
+    for i in range(len(ax_list)):
+        ax_list[i].set_xlim( set_xlim )
+        ax_list[i].set_ylim( set_ylim )
+
+    if point_coordinates is not None:
+        for i in range(len(ax_list)):
+            ax_list[i].plot(point_coordinates[0],point_coordinates[1],marker='o',mfc='none')
 
 
     # plt.show()
@@ -104,15 +117,20 @@ if __name__ == "__main__""":
 
         print(list_with_images[i].shape)
 
-    x = f["uptomode%04d_0000/Wcomplex/axis_x"%up_to_mode].value
-    y = f["uptomode%04d_0000/Wcomplex/axis_y"%up_to_mode].value
-
-
-
+    x = f["uptomode%04d_0000/Wcomplex/axis_x"%up_to_mode].value * 1e3 # in microns
+    y = f["uptomode%04d_0000/Wcomplex/axis_y"%up_to_mode].value * 1e3 # in microns
+    point_coordinates = f["r2"].value
 
     f.close()
 
-    plot_with_transparency_four(list_with_images,DISTANCES,extent=(-25,25,-10,10),delta=8,savefig=h5file_root+".png")
+
+    # from srxraylib.plot.gol import plot_image
+    # plot_image(numpy.angle(list_with_images[1].T),x,y)
+
+    # plot_with_transparency_four(list_with_images,DISTANCES,extent=(-25,25,-10,10),delta=8,savefig=h5file_root+".png")
+    plot_with_transparency_four(list_with_images,DISTANCES,extent=(x[0],x[-1],y[0],y[-1]),delta=8,
+                point_coordinates=point_coordinates*1e6,set_xlim=[-75,75],set_ylim=None,
+                savefig=h5file_root+".png")
 
     #
     #

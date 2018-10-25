@@ -72,7 +72,7 @@ def spectral_density(h5file_root="vx_id16a_A",up_to_mode=1099,do_plot=False):
 
 
     # if up_to_mode == 0:
-    #     plt.colorbar(orientation="horizontal", pad=0.2)
+    # plt.colorbar(orientation="horizontal", pad=0.2)
     # else:
     #     ax = fig.gca()
     #     ax.set_xlabel("X [$\mu$m]")
@@ -95,4 +95,4 @@ def spectral_density(h5file_root="vx_id16a_A",up_to_mode=1099,do_plot=False):
 
 if __name__ == "__main__":
 
-    spectral_density(h5file_root="vx_id16a_A_propagated",up_to_mode=0,do_plot=True)
+    spectral_density(h5file_root="vx_id16a_A",up_to_mode=1099,do_plot=True)
