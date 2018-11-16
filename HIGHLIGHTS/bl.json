@@ -1,0 +1,76 @@
+{
+    "CLASS_NAME": "BeamlineWithPropagator",
+    "light_source": {
+        "CLASS_NAME": "EmptyLightSource",
+        "name": "Empty"
+    },
+    "beamline_elements_list": [
+        {
+            "CLASS_NAME": "BeamlineElement",
+            "optical_element": {
+                "CLASS_NAME": "WOScreen",
+                "boundary_shape": {
+                    "CLASS_NAME": "BoundaryShape"
+                }
+            },
+            "coordinates": {
+                "CLASS_NAME": "ElementCoordinates",
+                "p": 37.0,
+                "q": 0,
+                "angle_radial": 0.0,
+                "angle_azimuthal": 0.0
+            }
+        },
+        {
+            "CLASS_NAME": "BeamlineElement",
+            "optical_element": {
+                "CLASS_NAME": "WOIdealLens",
+                "focal_x": 18.0,
+                "focal_y": 18.0
+            },
+            "coordinates": {
+                "CLASS_NAME": "ElementCoordinates",
+                "p": 0,
+                "q": 0,
+                "angle_radial": 0.0,
+                "angle_azimuthal": 0.0
+            }
+        },
+        {
+            "CLASS_NAME": "BeamlineElement",
+            "optical_element": {
+                "CLASS_NAME": "WOSlit",
+                "boundary_shape": {
+                    "CLASS_NAME": "Rectangle",
+                    "x_left": -1.25e-05,
+                    "x_right": 1.25e-05,
+                    "y_bottom": -1.25e-05,
+                    "y_top": 1.25e-05
+                }
+            },
+            "coordinates": {
+                "CLASS_NAME": "ElementCoordinates",
+                "p": 32,
+                "q": 0,
+                "angle_radial": 0.0,
+                "angle_azimuthal": 0.0
+            }
+        },
+        {
+            "CLASS_NAME": "BeamlineElement",
+            "optical_element": {
+                "CLASS_NAME": "WOScreen",
+                "boundary_shape": {
+                    "CLASS_NAME": "BoundaryShape"
+                }
+            },
+            "coordinates": {
+                "CLASS_NAME": "ElementCoordinates",
+                "p": 2,
+                "q": 0,
+                "angle_radial": 0.0,
+                "angle_azimuthal": 0.0
+            }
+        }
+    ]
+}

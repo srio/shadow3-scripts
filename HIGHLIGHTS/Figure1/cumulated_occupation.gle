@@ -1,0 +1,76 @@
+! gle graphic, customized srio@esrf.eu 20130131
+!
+! global settings
+!
+!size 21.0 29.7               ! size of paper A4 (in cm)
+!amove 1 7                    ! origin of graph in paper coordinates
+
+size 18 12             !Sets the size of the graph in cm
+set font texcmr hei 0.75      ! font "computer modern roman" size
+
+include "color.gle"
+include "barstyles.gle"
+!
+! create graph
+!
+begin graph
+        !math                  ! axes in the center
+        scale auto
+        size 18 12             !Sets the size of the graph in cm
+        !
+        ! titles
+        !
+        !title "from xplot..."  ! hei 1 color red dist 2
+        xtitle "Mode index"
+        ytitle "Cumulated Occupation"
+        !
+        ! axes & limits
+        !
+        xaxis min 0 max 2000  dticks 1000 dsubticks 100
+        yaxis min 0 max 1  dticks  0.2 dsubticks 0.1
+        !
+        ! reads data
+        !
+        data "cumulated_occupation_ebs.dat"  d1=c1,c2
+        data "cumulated_occupation_lb.dat" d2=c1,c2
+        data "cumulated_occupation_hb.dat" d3=c1,c2
+        !
+        ! plot data
+
+
+        !
+        d1 line color blue     !lstyle 4 color blue
+        ! bar d1 width 0.5,0.5 fill blue ! style red purplecolormap,yellowcolormap
+        ! d1 line bar color blue
+
+        d2 line color green     !lstyle 4 color blue
+        ! bar d2 width 0.5,0.5 fill green ! style red purplecolormap,yellowcolormap
+
+        d3 line color red     !lstyle 4 color blue
+        ! bar d2 width 0.5,0.5 fill red ! style red purplecolormap,yellowcolormap
+
+
+
+
+end graph                               
+
+!
+! legend
+!
+
+set font texcmr hei 0.5      ! font "computer modern roman" size
+begin key
+   nobox
+   pos br
+   line color blue text "EBS"
+   line color green text "Low\beta    "
+   line color red text   "High\beta   "
+   text " "
+end key
+!
+! draw label at any point (graph coordinates)
+!set just cc
+!amove xg(0.25) yg(0.5)
+!tex "$\displaystyle\log a = \int_{1}^{a}{\textstyle \frac{1}{x}\,dx}$"
+
+

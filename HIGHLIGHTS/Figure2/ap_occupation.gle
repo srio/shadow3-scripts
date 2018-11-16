@@ -1,0 +1,44 @@
+! gle graphic, customized srio@esrf.eu 20130131
+!
+! global settings
+!
+
+size 18 12             !Sets the size of the graph in cm
+set font texcmr hei 0.65      ! font "computer modern roman" size
+
+!
+! create graph
+!
+begin graph
+        !math                  ! axes in the center
+        scale auto
+        size 18 12             !Sets the size of the graph in cm
+        !
+        ! titles
+        !
+        !title "from xplot..."  ! hei 1 color red dist 2
+        xtitle "Aperture size V x H [\mu m]"
+        ytitle "Coherent Fraction"
+        xticks off
+        !
+        ! axes & limits
+        !
+        ! xaxis min 0.5 max 7.5  dticks 1
+        yaxis min 0 max 0.6  dticks  0.1 dsubticks 0.05
+        !
+        ! reads data
+        !
+        data ap_occupation.dat
+        !
+        ! plot data
+        !
+        !d1 line color blue hist    !lstyle 4 color blue
+
+        key pos tl
+        bar d1 width 0.5,0.5 fill blue ! style red purplecolormap,yellowcolormap
+        ! d1 line bar color blue
+
+        bar d2 width 0.5,0.5 fill green ! style red purplecolormap,yellowcolormap
+        bar d3 width 0.5,0.5 fill red ! style red purplecolormap,yellowcolormap
+
+end graph                               

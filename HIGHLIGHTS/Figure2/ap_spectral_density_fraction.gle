@@ -1,0 +1,55 @@
+! gle graphic, customized srio@esrf.eu 20130131
+!
+! global settings
+!
+
+size 18 12             !Sets the size of the graph in cm
+set font texcmr hei 0.65      ! font "computer modern roman" size
+
+!
+! create graph
+!
+begin graph
+        !math                  ! axes in the center
+        scale auto
+        size 18 12             !Sets the size of the graph in cm
+        xticks off
+        !
+        ! titles
+        !
+        xtitle "Aperture size V x H [\mu m]"
+        ytitle "Spectral density fraction"
+        !
+        ! axes & limits
+        !
+        yaxis min 0.0001 max 0.075 ! dticks  0.1 dsubticks 0.05
+        !
+        ! reads data
+        !
+        data ap_spectral_density_fraction.dat ignore 1
+        !
+        ! plot data
+        !
+        key pos tl
+        bar d1 width 0.5,0.5 fill blue ! style red purplecolormap,yellowcolormap
+
+        bar d3 width 0.5,0.5 fill green ! style red purplecolormap,yellowcolormap
+
+        bar d2 width 0.5,0.5 fill red ! style red purplecolormap,yellowcolormap
+end graph                               
+
+!
+! legend
+!
+
+set font texcmr hei 0.5      ! font "computer modern roman" size
+begin key
+   nobox
+   pos tr
+   !text "EBS" marker square fill blue
+   fill blue text "EBS"
+   fill green text "Low\beta"
+   fill red text "High\beta"
+end key
+
+
