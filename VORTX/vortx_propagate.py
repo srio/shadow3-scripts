@@ -303,7 +303,73 @@ class AFpropagated(object):
         return afp
 
 
+    def apply_three_apertures(self,index_max=None,patch_shape='Rectangle',
+                    center1=[0.0,0.0],width1=[15e-6,15e-6],
+                    center2=[40e-6,25e-6],width2=[15e-6,15e-6],
+                    center3=[-40e-6,-25e-6],width3=[15e-6,15e-6]):
 
+
+        from wofry.propagator.wavefront2D.generic_wavefront import GenericWavefront2D
+        afp = AFpropagated()
+
+        if index_max is None:
+            index_max = self.number_modes()
+
+        for i in range(index_max+1):
+            mi  = self.mode(i)
+            evi = self.eigenvalue(i)
+
+            print("applying aperture on mode index",i,evi,mi.shape)
+
+
+            input_wavefront = GenericWavefront2D.initialize_wavefront_from_arrays(x_array=self.x_coordinates(),
+                                                                                  y_array=self.y_coordinates(),
+                                                                                  z_array=mi,
+                                                                                  )
+            input_wavefront.set_photon_energy(17226.0)
+
+            output_wavefront = input_wavefront.duplicate()
+
+            if patch_shape == "Rectangle":
+                    w1 = output_wavefront.clip_square(center1[0]-0.5*width1[0],center1[0]+0.5*width1[0],
+                                                center1[1]-0.5*width1[1],center1[1]+0.5*width1[1],
+                                                apply_to_wavefront=False)
+
+
+                    w2 = output_wavefront.clip_square(center2[0]-0.5*width2[0],center2[0]+0.5*width2[0],
+                                                center2[1]-0.5*width2[1],center2[1]+0.5*width2[1],
+                                                apply_to_wavefront=False)
+
+                    w3 = output_wavefront.clip_square(center3[0]-0.5*width3[0],center3[0]+0.5*width3[0],
+                                                center3[1]-0.5*width3[1],center3[1]+0.5*width3[1],
+                                                apply_to_wavefront=False)
+
+            elif (patch_shape == "Circle" or patch_shape == "Ellipse"):
+                    w1 = output_wavefront.clip_circle(width1[0],center1[0],center1[1],
+                                                apply_to_wavefront=False)
+
+
+                    w2 = output_wavefront.clip_circle(width2[0],center2[0],center2[1],
+                                                apply_to_wavefront=False)
+
+                    w3 = output_wavefront.clip_circle(width3[0],center3[0],center3[1],
+                                                apply_to_wavefront=False)
+
+                    # plot_image(w1+w2,output_wavefront.get_coordinate_x()*1e6,
+                    #            output_wavefront.get_coordinate_y()*1e6)
+            else:
+                raise Exception(NotImplementedError)
+
+            output_wavefront.clip_window(w1+w2+w3)
+
+
+            afp.add_mode(output_wavefront.get_complex_amplitude(),evi)
+
+            if i == 0:
+                afp.x = output_wavefront.get_coordinate_x()
+                afp.y = output_wavefront.get_coordinate_y()
+
+        return afp
 
 if __name__ == "__main__":
 

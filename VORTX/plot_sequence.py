@@ -6,7 +6,7 @@ from matplotlib.colors import Normalize
 import h5py
 
 
-def plot_with_transparency_four(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta=6,
+def plot_with_transparency_nine(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta=6,
                                 set_xlim=None,set_ylim=None,point_coordinates=None,
                                 show=True,savefig=None):
 
@@ -43,9 +43,8 @@ def plot_with_transparency_four(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta
         colors_list.append(colors)
 
 
-    w=10
-    h=10
-    fig=plt.figure(figsize=(12, 8))
+    fig=plt.figure(figsize=(8, 8))
+    fig.subplots_adjust(hspace=0.01, wspace=0.01)
     columns = int(numpy.sqrt(DISTANCES.size))
     rows = columns
     ax_list = []
@@ -53,16 +52,19 @@ def plot_with_transparency_four(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta
         img = colors_list[i-1]
         ax = fig.add_subplot(rows, columns, i)
         ax_list.append(ax)
-        print(">>>>",ax)
         ax.imshow(img, interpolation='none',cmap=cmap,aspect='equal',extent=extent, origin='lower')
-        if i != 7:
-            ax.xaxis.set_major_formatter(plt.NullFormatter())
+
+        if i != 1 and i != 4 and i != 7:
             ax.yaxis.set_major_formatter(plt.NullFormatter())
         else:
-            plt.xlabel("X [$\mu$m]")
             plt.ylabel("Y [$\mu$m]")
-            # pass
-        plt.title("D=%5.3f m"%DISTANCES[i-1])
+
+        if i  < 7:
+            ax.xaxis.set_major_formatter(plt.NullFormatter())
+        else:
+            plt.xlabel("X [$\mu$m]")
+
+        ax.text(-70, -70, "$D$=%5.2f m"%DISTANCES[i-1])#, bbox={'facecolor': 'white', 'pad': 10})
 
     for i in range(len(ax_list)):
         ax_list[i].set_xlim( set_xlim )
@@ -103,7 +105,7 @@ def plot_with_transparency_four(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta
 
 if __name__ == "__main__""":
 
-    up_to_mode = 99
+    up_to_mode = 19
     h5file_root = "vx_id16a_C5_propagated_neighbour_mode%04d"%up_to_mode
     h5file = h5file_root+".h5"
 
@@ -128,9 +130,9 @@ if __name__ == "__main__""":
     # plot_image(numpy.angle(list_with_images[1].T),x,y)
 
     # plot_with_transparency_four(list_with_images,DISTANCES,extent=(-25,25,-10,10),delta=8,savefig=h5file_root+".png")
-    plot_with_transparency_four(list_with_images,DISTANCES,extent=(x[0],x[-1],y[0],y[-1]),delta=8,
+    plot_with_transparency_nine(list_with_images,DISTANCES,extent=(x[0],x[-1],y[0],y[-1]),delta=8,
                 point_coordinates=point_coordinates*1e6,set_xlim=[-75,75],set_ylim=None,
-                savefig=h5file_root+".png")
+                savefig="/tmp/"+h5file_root+".png")
 
     #
     #
