@@ -15,7 +15,7 @@ ax1 = fig.add_axes([0.05, 0.5, 0.9, 0.45])
 
 # Set the colormap and norm to correspond to the data for which
 # the colorbar will be used.
-cmap = mpl.cm.hsv
+cmap = mpl.cm.YlGnBu #gray #hsv
 norm = mpl.colors.Normalize(vmin=-numpy.pi, vmax=numpy.pi)
 
 # ColorbarBase derives from ScalarMappable and puts a colorbar

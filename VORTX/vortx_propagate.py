@@ -382,7 +382,7 @@ if __name__ == "__main__":
     point = "J"
 
     distance = 30.0
-    index_max = 1099
+    index_max = 0 # 1099
     zoom = (6.0,16.0)
 
     if point == "A":
@@ -435,7 +435,7 @@ if __name__ == "__main__":
     # first propagate a few modes only to check there are no errors
     afp = AFpropagated.propagate(af,distance=distance,index_max=5,zoom=zoom)
 
-    h5file = "vx_id16a_%s_propagated.h5"%point
+    h5file = "vx_id16a_%s_propagated.h5"%(point)
 
     print("X: start, step, points",afp.x_coordinates()[0],afp.x_coordinates()[1] - afp.x_coordinates()[0],afp.x_coordinates().size)
     print("Y: start, step, points",afp.y_coordinates()[0],afp.y_coordinates()[1] - afp.y_coordinates()[0],afp.y_coordinates().size)

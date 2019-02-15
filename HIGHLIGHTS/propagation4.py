@@ -141,6 +141,25 @@ if __name__ == "__main__":
         print("May be you alreay initialized propagator and stored FresnelZoomXY2D")
 
 
+
+    #
+    # beamline, specific = create_beamline_wofry()
+    #
+    # propagation_elements = PropagationElements()
+    # for i,element in enumerate(beamline.get_beamline_elements()):
+    #     propagation_elements.add_beamline_element(beamline_element=element,
+    #                                               element_parameters=specific[i])
+
+
+
+
+
+    # wofry_wavefront = create_wofry_wavefront()
+    # print(wofry_wavefront)
+    # propagation_parameters = PropagationParameters(wavefront=wofry_wavefront.duplicate(),
+    #                                                propagation_elements = propagation_elements)
+
+
     filename = "/scisoft/users/glass/Documents/sources/Orange-SRW/comsyl/calculations/cs_new_u18_2m_1h_s2.5.npz" # OK EBS
     # filename = "/scisoft/users/glass/Documents/sources/Orange-SRW/comsyl/calculations/cl_low_beta_u18_2m_1h_s6.5.npy" # OK LB
     # filename = "/scisoft/users/glass/Documents/sources/Orange-SRW/comsyl/calculations/cl_high_beta_u18_2m_1h_s2.0.npy"
@@ -199,9 +218,9 @@ if __name__ == "__main__":
 
             beamline, specific = create_beamline_wofry(load_from_file=None, #"./BEAMLINE.p",
                 slit_width=slitH[j]*1e-6,slit_height=slitV[j]*1e-6)
-            propagation_elements = PropagationElements()
 
-            print(beamline)
+
+            propagation_elements = PropagationElements()
             for i in range(beamline.get_beamline_elements_number()):
                 print("ADDING ELEMENT: ",i,beamline.get_beamline_elements_number(),len(specific))
                 propagation_elements.add_beamline_element(beamline_element=beamline.get_beamline_element_at(i),
@@ -230,5 +249,6 @@ if __name__ == "__main__":
         f = open("propagation.txt",'a')
         f.write('"%d x %d" %f \n'%(slitV[j],slitH[j],ratio))
         f.close
+        print("File written to disk: propagation.txt")
 
 

@@ -2,21 +2,39 @@ import numpy
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import Normalize
+import scipy.constants as codata
 
 import h5py
 
 
 def plot_with_transparency_nine(arr1_list,DISTANCES,extent=(-75,75,-15,15),delta=6,
                                 set_xlim=None,set_ylim=None,point_coordinates=None,
+                                correct_background=False,x=None,y=None,
                                 show=True,savefig=None):
 
-    cmap = plt.cm.hsv
+    cmap = plt.cm.hsv # YlGnBu # gray # hsv
 
 
     colors_list = []
 
+
     for i,arr1 in enumerate(arr1_list):
-        phases = numpy.angle(arr1)
+
+        if correct_background:
+            if DISTANCES[i] == 0:
+                background = 1.0
+            else:
+                X = numpy.outer(x, numpy.ones_like(y)).T * 1e-6  # from um to m
+                Y = numpy.outer(numpy.ones_like(x), y).T * 1e-6  # from um to m
+                energy = 17226.0
+                wavelength = codata.h * codata.c / codata.e / energy
+                background = numpy.exp(2j * numpy.pi / wavelength * (X * X + Y * Y) / 2 / DISTANCES[i])
+        else:
+            background = 1.0
+
+
+
+        phases = numpy.angle(arr1*background)
 
 
         colors = Normalize(phases.min(),phases.max(),clip=True)(phases)
@@ -132,7 +150,7 @@ if __name__ == "__main__""":
     # plot_with_transparency_four(list_with_images,DISTANCES,extent=(-25,25,-10,10),delta=8,savefig=h5file_root+".png")
     plot_with_transparency_nine(list_with_images,DISTANCES,extent=(x[0],x[-1],y[0],y[-1]),delta=8,
                 point_coordinates=point_coordinates*1e6,set_xlim=[-75,75],set_ylim=None,
-                savefig="/tmp/"+h5file_root+".png")
+                savefig="/tmp/"+h5file_root+".png",correct_background=True,x=x,y=y)
 
     #
     #

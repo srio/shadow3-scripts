@@ -322,8 +322,20 @@ def run_interference(
     x = afp.x_coordinates()
     y = afp.y_coordinates()
 
+
     if True:
-        plot_image_with_transparency(numpy.angle(tmp),numpy.abs(tmp)**2,1e6*x,1e6*y,
+        import scipy.constants as codata
+        if True:
+            X = numpy.outer(x, numpy.ones_like(y))  # from um to m
+            Y = numpy.outer(numpy.ones_like(x), y)  # from um to m
+            energy = 17226.0
+            wavelength = codata.h * codata.c / codata.e / energy
+            background = numpy.exp(2j * numpy.pi / wavelength * (X * X + Y * Y) / 2 / 5.0)
+        else:
+            background = 1.0
+
+
+        plot_image_with_transparency(numpy.angle(tmp*background),numpy.abs(tmp)**2,1e6*x,1e6*y,
                     title="up to mode %d"%index_max,
                     xtitle="X [$\mu$m]", #%d pixels]"%x.size,
                     ytitle="Y [$\mu$m]", #%d pixels]"%y.size,
@@ -398,6 +410,7 @@ def run_interference(
         if do_plot:
             plt.show()
 
+        print(">>>>>>>>>>>>>>>>>>>>",tmp.shape,x.shape,y.shape)
         fig,ax = plot_image(numpy.array(tmp),1e6*x,1e6*y,
                     title="", #""up to mode %d"%index_max,#xrange=[-150,150],yrange=[-100,100],
                     xtitle="X [$\mu$m]", # %d pixels]"%x.size,
@@ -453,6 +466,6 @@ if __name__ == "__main__":
                 distance=30.0,
                 zoom=(6.0, 16.0),
                 write_h5=False,
+                # do_plot=False,
                 do_plot=False,
-                # do_plot=True,
                 filename_ebs="/scisoft/data/srio/COMSYL/ID16/id16s_ebs_u18_1400mm_1h_new_s1.0.npy")

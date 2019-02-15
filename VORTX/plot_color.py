@@ -1,7 +1,7 @@
 import numpy
 import numpy as np
 import h5py
-from srxraylib.plot.gol import plot_image,plot_surface
+from srxraylib.plot.gol import plot_image,plot_surface,plot
 
 # see https://stackoverflow.com/questions/17044052/mathplotlib-imshow-complex-2d-array
 
@@ -10,22 +10,39 @@ from matplotlib.colors import hsv_to_rgb
 
 import pylab as plt
 from matplotlib.colors import Normalize
-
+import scipy.constants as codata
 
         #arr1,extent=(-75,75,-15,15),delta=6,cmap=None,show=True):
-def plot_with_transparency_one(arr0,x,y,extent=None,delta=6,cmap=None,show=True):
+def plot_with_transparency_one(arr0,x,y,extent=None,delta=6,cmap=plt.cm.hsv,show=True):
 
     from colorsys import hls_to_rgb
     from matplotlib.colors import hsv_to_rgb
 
+    print(x)
     extent=(x[0],x[-1],y[0],y[-1])
 
     arr1 = arr0 #.T
 
-    cmap = plt.cm.hsv
+    # cmap = plt.cm.grey
+    # cmap = plt.cm.hsv
 
-    phases = numpy.angle(arr1)
+    # phases = numpy.angle(arr1)
 
+    X = numpy.outer(x,numpy.ones_like(y)).T * 1e-6 # from um to m
+    Y = numpy.outer(numpy.ones_like(x),y).T * 1e-6 # from um to m
+    energy = 17226.0
+    wavelength = codata.h * codata.c / codata.e / energy
+    background = numpy.exp(2j * numpy.pi / wavelength * (X * X + Y * Y)  / 2 / 5.0)
+
+    phases = numpy.angle(arr1 * background)
+
+    plot(x, numpy.angle(arr1)[y.size//2,:],
+         x, numpy.angle(background)[y.size//2,:],
+         x, phases[y.size//2,:],legend=["comsyl","background","diff"],xtitle="x",show=False)
+
+    plot(y, numpy.angle(arr1)[:,x.size//2],
+         y, numpy.angle(background)[:,x.size//2],
+         y, phases[:,x.size//2],legend=["comsyl","background","diff"],xtitle="y")
 
     colors = Normalize(phases.min(),phases.max(),clip=True)(phases)
     colors = cmap(colors)
@@ -62,22 +79,37 @@ def plot_with_transparency_one(arr0,x,y,extent=None,delta=6,cmap=None,show=True)
 
 
 def plot_with_transparency_four(arr1_list,x,y,delta=6,show=True,savefig="/tmp/1.png",point_coordinates=None,
-                                propagation_distance=0,set_xlim=None,set_ylim=None):
+                                propagation_distance=0,set_xlim=None,set_ylim=None,
+                                correct_background=False,cmap=plt.cm.hsv):
 
     extent=(x[0],x[-1],y[0],y[-1])
 
-    cmap = plt.cm.hsv
+    # cmap = plt.cm.hsv
 
 
     colors_list = []
 
+    if correct_background:
+        if propagation_distance == 0:
+            background = 1.0
+        else:
+            X = numpy.outer(x, numpy.ones_like(y)).T * 1e-6  # from um to m
+            Y = numpy.outer(numpy.ones_like(x), y).T * 1e-6  # from um to m
+            energy = 17226.0
+            wavelength = codata.h * codata.c / codata.e / energy
+            background = numpy.exp(2j * numpy.pi / wavelength * (X * X + Y * Y) / 2 / propagation_distance)
+    else:
+        background = 1.0
+
+
     for i,arr1 in enumerate(arr1_list):
-        phases = numpy.angle(arr1)
+
+
+        phases = numpy.angle(arr1*background)
 
 
         colors = Normalize(phases.min(),phases.max(),clip=True)(phases)
         colors = cmap(colors)
-
 
         weights = numpy.abs(arr1)**2
         print("Extrema for weights: ",weights.min(),weights.max())
@@ -163,25 +195,26 @@ def plot_with_transparency_four(arr1_list,x,y,delta=6,show=True,savefig="/tmp/1.
 
 if __name__ == "__main__":
 
+    remove_spherical_phase = True
+    cmap = plt.cm.hsv # YlGnBu #gray #hsv
 
+    # h5file_root = "vx_id16a_A"
+    # propagation_distance = 0
 
-    h5file_root = "vx_id16a_A"
-    propagation_distance = 0
-
-    h5file_root = "vx_id16a_B"
-    propagation_distance = 0
-
-    h5file_root = "vx_id16a_C"
-    propagation_distance = 0
+    # h5file_root = "vx_id16a_B"
+    # propagation_distance = 0
+    #
+    # h5file_root = "vx_id16a_C"
+    # propagation_distance = 0
 
     h5file_root = "vx_id16a_C1_propagated"
     propagation_distance = 1
 
-    h5file_root = "vx_id16a_C5_propagated"
-    propagation_distance = 5
+    # h5file_root = "vx_id16a_C5_propagated"
+    # propagation_distance = 5
 
-    h5file_root = "vx_id16a_C_propagated"  # note missing "30"
-    propagation_distance = 30
+    # h5file_root = "vx_id16a_C_propagated"  # note missing "30"
+    # propagation_distance = 30
 
 
     #
@@ -218,24 +251,29 @@ if __name__ == "__main__":
         plot_with_transparency_four([arr1,arr2,arr3,arr4], x, y, delta=8, savefig="/tmp/"+h5file_root+".png",
                                     propagation_distance=propagation_distance,
                                     point_coordinates=point_coordinates, set_xlim=[-400,400], set_ylim=[-400,400],
-                                    show=True)
+                                    correct_background=remove_spherical_phase,cmap=cmap,show=True)
         # plot_with_transparency_one(arr1,x,y,delta=8)
     elif propagation_distance == 5:
         plot_with_transparency_four([arr1,arr2,arr3,arr4], x, y, delta=8, savefig="/tmp/"+h5file_root+".png",
                                     propagation_distance=propagation_distance,
                                     point_coordinates=point_coordinates, set_xlim=[-70,70], set_ylim=[-70,70],
-                                    show=True)
+                                    correct_background=remove_spherical_phase,cmap=cmap,show=True,)
+
+        # plot_with_transparency_one(arr1, x, y, delta=8)
     elif propagation_distance == 1:
         plot_with_transparency_four([arr1,arr2,arr3,arr4], x, y, delta=8, savefig="/tmp/"+h5file_root+".png",
                                     propagation_distance=propagation_distance,
                                     point_coordinates=point_coordinates, set_xlim=[-35,35], set_ylim=[-35,35],
-                                    show=True)
+                                    correct_background=remove_spherical_phase,cmap=cmap,show=True)
     elif propagation_distance == 0:
         plot_with_transparency_four([arr1, arr2, arr3, arr4], x, y, delta=8, savefig="/tmp/" + h5file_root + ".png",
                                     propagation_distance=propagation_distance,
                                     point_coordinates=point_coordinates, set_xlim=[-50, 50],
+                                    correct_background=remove_spherical_phase,cmap=cmap,
                                     # set_xlim=[-575,575],set_ylim=[-575,575]
                                     )
+
+
     else:
         raise("Not implemented")
 
