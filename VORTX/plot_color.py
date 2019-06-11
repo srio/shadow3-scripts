@@ -80,7 +80,8 @@ def plot_with_transparency_one(arr0,x,y,extent=None,delta=6,cmap=plt.cm.hsv,show
 
 def plot_with_transparency_four(arr1_list,x,y,delta=6,show=True,savefig="/tmp/1.png",point_coordinates=None,
                                 propagation_distance=0,set_xlim=None,set_ylim=None,
-                                correct_background=False,cmap=plt.cm.hsv):
+                                correct_background=False,cmap=plt.cm.hsv,
+                                plot_intensity=False):
 
     extent=(x[0],x[-1],y[0],y[-1])
 
@@ -107,12 +108,18 @@ def plot_with_transparency_four(arr1_list,x,y,delta=6,show=True,savefig="/tmp/1.
 
         phases = numpy.angle(arr1*background)
 
-
-        colors = Normalize(phases.min(),phases.max(),clip=True)(phases)
-        colors = cmap(colors)
-
         weights = numpy.abs(arr1)**2
         print("Extrema for weights: ",weights.min(),weights.max())
+
+        if plot_intensity:
+            w1 = weights.copy() * 0 + 1
+            colors = Normalize(0, 1, clip=True)(w1)
+        else: # phase, default
+            colors = Normalize(phases.min(),phases.max(),clip=True)(phases)
+
+
+
+        colors = cmap(colors)
 
 
         rmax = weights.max()
@@ -126,7 +133,7 @@ def plot_with_transparency_four(arr1_list,x,y,delta=6,show=True,savefig="/tmp/1.
         weights /= weights.max()
 
 
-        colors[..., -1] = weights
+        colors[..., -1] = weights #* 0 + 1
 
         colors_list.append(colors)
 
@@ -197,6 +204,7 @@ if __name__ == "__main__":
 
     remove_spherical_phase = True
     cmap = plt.cm.hsv # YlGnBu #gray #hsv
+    # cmap = plt.cm.binary
 
     # h5file_root = "vx_id16a_A"
     # propagation_distance = 0
@@ -204,11 +212,11 @@ if __name__ == "__main__":
     # h5file_root = "vx_id16a_B"
     # propagation_distance = 0
     #
-    # h5file_root = "vx_id16a_C"
-    # propagation_distance = 0
+    h5file_root = "vx_id16a_C"
+    propagation_distance = 0
 
-    h5file_root = "vx_id16a_C1_propagated"
-    propagation_distance = 1
+    # h5file_root = "vx_id16a_C1_propagated"
+    # propagation_distance = 1
 
     # h5file_root = "vx_id16a_C5_propagated"
     # propagation_distance = 5
@@ -270,6 +278,7 @@ if __name__ == "__main__":
                                     propagation_distance=propagation_distance,
                                     point_coordinates=point_coordinates, set_xlim=[-50, 50],
                                     correct_background=remove_spherical_phase,cmap=cmap,
+                                    plot_intensity=False,
                                     # set_xlim=[-575,575],set_ylim=[-575,575]
                                     )
 

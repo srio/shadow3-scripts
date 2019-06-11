@@ -139,7 +139,7 @@ def create_beamline_wofry(load_from_file=None, slit_width=5e-6,slit_height=5e-6,
 if __name__ == "__main__":
 
 
-    method = 'SRW'
+    method = 'WOFRY'
 
     print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
     print("++++ method =     %s "%(method))

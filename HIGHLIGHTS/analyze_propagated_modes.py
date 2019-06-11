@@ -63,7 +63,7 @@ if __name__ == "__main__":
         m1 = autocorrelation_function1.mode(i)
         m2 = autocorrelation_function2.mode(i)
 
-        print(">>>>",autocorrelation_function1.mode_intensity(i),autocorrelation_function2.mode_intensity(i))
+        # print(">>>>",autocorrelation_function1.mode_intensity(i),autocorrelation_function2.mode_intensity(i))
         # print(">>",a1,a2,a2/a1,)
 
     print(">>>> size",eigenvalues1.size,eigenvalues2.size)
