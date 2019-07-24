@@ -5,53 +5,8 @@
 #
 import numpy
 
-
-from flexon import m2ev, solve_grating_equation, vls_coefficients_calculate, vls_coefficients_convert_to_shadow
-
-
-def trajectories(energies,r,rp,k0,m,b2):
-
-    # if energies is an scalar
-    if isinstance(energies,float):
-        energies = numpy.array([energies])
-
-    Alpha = energies * 0
-    Beta = energies * 0
-
-
-    for i,energy in enumerate(energies):
-        #
-        # get alpha and beta for any energy
-        #
-
-        wavelength = m2ev / energy # numpy.sqrt(Emin*Emax)
-
-        A = -(1.0/r + 1.0/rp)
-        B = 2 * wavelength * k0 / rp
-        C = -A - (wavelength * k0)**2 / rp - 2 * m * wavelength * k0 * b2
-
-        Delta = B * B - 4 * A * C
-
-        x1 = (-B + numpy.sqrt(Delta)) / 2 / A
-        x2 = (-B - numpy.sqrt(Delta)) / 2 / A
-
-        # print("A,B,C,Delta: ",A,B,C,Delta)
-        # print("x1,x2=",x1,x2)
-        alpha1 = numpy.arcsin(x1)
-        alpha2 = numpy.arcsin(x2)
-        if alpha1 > 0:
-            alpha = alpha1
-        else:
-            alpha = alpha2
-
-        sinbeta1 = (wavelength * k0) - numpy.sin(alpha)
-        beta = numpy.arcsin(sinbeta1)
-
-        Alpha[i] = alpha
-        Beta[i] = beta
-
-    # print("alpha,beta = ",alpha*180/numpy.pi,beta*180/numpy.pi)
-    return Alpha,Beta
+from grating_tools import m2ev, solve_grating_equation, vls_coefficients_calculate, vls_coefficients_convert_to_shadow
+from grating_tools import trajectories
 
 
 if __name__ == "__main__":
@@ -59,7 +14,7 @@ if __name__ == "__main__":
     # inputs
     #
 
-    do_plot = False
+    do_plot = True
 
     m = 1 # order
 
@@ -138,18 +93,6 @@ if __name__ == "__main__":
                                                            ))
 
     print("\n\n\n")
-
-
-#
-    #
-    #
-    #
-    # L = 50.0
-
-
-
-
-    # size_at_image_fwhm = 5e-6
 
 
     #
@@ -255,4 +198,5 @@ if __name__ == "__main__":
     resolving_power_source = size_at_source_fwhm * numpy.cos(Alpha) / (k0 * m * r)
     resolving_power_source = (m2ev / energies) / resolving_power_source
 
-    plot(energies,resolving_power_source,xtitle="Photon energy [eV]",ytitle="Resolving power (source)")
+    if do_plot:
+        plot(energies,resolving_power_source,xtitle="Photon energy [eV]",ytitle="Resolving power (source)")
