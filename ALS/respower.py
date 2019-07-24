@@ -70,13 +70,14 @@ def respower(beam0,colE,col1,nolost=True,nbins=100,hlimit=0.1,do_plot=True,title
     # get data
     #
     energy = beam.getshonecol(colE,nolost=nolost)
+    energy_all_rays = beam.getshonecol(colE, nolost=False)
     z = beam.getshonecol(col1, nolost=nolost)
 
 
     degree=1
     coeff = numpy.polyfit(energy, z, degree, rcond=None, full=False, w=None, cov=False)
 
-    yfit = coeff[1] + coeff[0] * energy
+    yfit = coeff[1] + coeff[0] * energy_all_rays
     beam.rays[:,col1-1] -= yfit
 
     #
@@ -139,7 +140,7 @@ def respower(beam0,colE,col1,nolost=True,nbins=100,hlimit=0.1,do_plot=True,title
             "deltax1":deltax1,
             "deltax2":deltax2}
 
-def respower_plot(beam,d):
+def respower_plot(beam,d,nolost=True):
     from srxraylib.plot.gol import plot, plot_scatter
     import matplotlib.pylab as plt
 
@@ -199,14 +200,19 @@ def respower_plot(beam,d):
 if __name__ == "__main__":
 
     beam0 = Shadow.Beam()
-    beam0.load('/Users/srio/Oasys/star.04')
+    file = '/Users/srio/Oasys/star.04'
+
+    file = "/Users/srio/Oasys/star_slit.dat"
+
+    beam0.load(file)
 
 
-    dict = respower(beam0,19,1)
+
+    dict = respower(beam0,19,1,nolost=True)
     for key in dict.keys():
         print(key," = ",dict[key])
 
-    respower_plot(beam0,dict)
+    respower_plot(beam0,dict,nolost=True)
 
 
 
