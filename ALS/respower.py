@@ -138,9 +138,10 @@ def respower(beam0,colE,col1,nolost=True,nbins=100,hlimit=0.1,do_plot=True,title
             "coordinates_at_hlimit":coordinates_at_hlimit,
             "coordinates_at_center":coordinates_at_center,
             "deltax1":deltax1,
-            "deltax2":deltax2}
+            "deltax2":deltax2,
+            "histo_dict":tkt}
 
-def respower_plot(beam,d,nolost=True):
+def respower_plot(beam,d,plot_substracted=False,nolost=True):
     from srxraylib.plot.gol import plot, plot_scatter
     import matplotlib.pylab as plt
 
@@ -171,10 +172,11 @@ def respower_plot(beam,d,nolost=True):
     #
     # substracted plot
     #
-    f = plot_scatter(energy, z-(coeff[1]+coeff[0]*energy),xtitle=xtitle, ytitle=ytitle, title=title,show=0)
-    f[1].plot(energy, energy*0+coordinates_at_hlimit[0])
-    f[1].plot(energy, energy*0+coordinates_at_hlimit[1])
-    plt.show()
+    if plot_substracted:
+        f = plot_scatter(energy, z-(coeff[1]+coeff[0]*energy),xtitle=xtitle, ytitle=ytitle, title=title,show=0)
+        f[1].plot(energy, energy*0+coordinates_at_hlimit[0])
+        f[1].plot(energy, energy*0+coordinates_at_hlimit[1])
+        plt.show()
 
     #
     # main plot
