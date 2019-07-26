@@ -207,13 +207,16 @@ if __name__ == "__main__":
 
     if do_plot:
         if not do_overplot_shadow_results:
-            plot(energies, Size_at_slit*1e6, xtitle="Photon energy [eV]", ytitle="Size at slit [um]")
+            plot(energies, Size_at_slit*1e6,
+                 xtitle="Photon energy [eV]", ytitle="Size at slit [um]",
+                 yrange=[0,12])
         else:
             x, y = get_shadow_result(file_shadow_results, "image_size")
             plot(energies, Size_at_slit*1e6,
                  x, y,
                  xtitle="Photon energy [eV]", ytitle="Size at slit [um]",
-                 legend=["analytical","shadow"])
+                 legend=["analytical","shadow"],
+                 yrange=[0,12])
 
 
     #
@@ -231,17 +234,20 @@ if __name__ == "__main__":
         if not do_overplot_shadow_results:
             plot(energies,resolving_power_source,
                  energies, resolving_power_image,
-                 energies, (m2ev / energies) / numpy.sqrt(delta_lambda0_source**2 + delta_lambda_image**2),
+                 # energies, (m2ev / energies) / numpy.sqrt(delta_lambda0_source**2 + delta_lambda_image**2),
                  xtitle="Photon energy [eV]",ytitle="Resolving power",
-                 legend=["source","image","combined"])
+                 legend=["source","image"])
         else:
             x, y = get_shadow_result(file_shadow_results, "resolving_power")
+            x, y5 = get_shadow_result(file_shadow_results, "resolving_power5")
             plot(energies,resolving_power_source,
-                 energies, resolving_power_image,
-                 # energies, (m2ev / energies) / numpy.sqrt(delta_lambda0_source**2 + delta_lambda_image**2),
+                 energies, resolving_power_source / numpy.sqrt(2),
+                 x, y5,
                  x, y,
+                 linestyle = ["solid","dashed","solid","dashed"],
+                 color=["blue", "blue", "red", "red"],
                  xtitle="Photon energy [eV]",ytitle="Resolving power",
-                 legend=["source","image","shadow"],yrange=[0,15000])
+                 legend=["source","source / sqrt(2)","shadow 0.5","shadow 0.1"],yrange=[0,15000])
 
 
     if do_plot:

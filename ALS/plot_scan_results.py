@@ -6,7 +6,7 @@ def get_shadow_result(file_shadow_results,keyword):
     # file_shadow_results = "cosmic_scan_energy_grating806eV.dat"
     a = numpy.loadtxt(file_shadow_results,skiprows=4)
 
-    # L photon energy [eV]  alpha [deg]  beta [deg]  size source V [um]  size [um]  source*M  C  resolving power
+    # L photon energy [eV]  alpha [deg]  beta [deg]  size source V [um]  size [um]  source*M  footprint on grating [m]  C  resolving power 0.1  resolving power 0.5
 
     energy = a[:,0]
     alpha = a[:,1]
@@ -17,6 +17,7 @@ def get_shadow_result(file_shadow_results,keyword):
     footprint = a[:,6]
     C = a[:,7]
     resolving_power = a[:,8]
+    resolving_power5 = a[:, 9]
 
     if keyword == "alpha":
         return energy,alpha
@@ -34,6 +35,8 @@ def get_shadow_result(file_shadow_results,keyword):
         return energy,C
     elif keyword == "resolving_power":
         return energy,resolving_power
+    elif keyword == "resolving_power5":
+        return energy,resolving_power5
 
 def plot_shadow_results(filename,keyword):
     x,y = get_shadow_result(filename,keyword)

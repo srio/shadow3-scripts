@@ -2,7 +2,7 @@ import Shadow
 import numpy
 from source_tools import get_sigmas_ALSU
 
-def run_shadow(energy=806.0, delta_energy=0.0, alpha = 88.603245, beta = 87.796714, sigmas=[1e-5,1e-5,1e-5]):
+def run_shadow_E806(energy=806.0, delta_energy=0.0, alpha = 88.603245, beta = 87.796714, sigmas=[1e-5,1e-5,1e-5]):
     #
     # Python script to run shadow3. Created automatically with ShadowTools.make_python_script_from_list().
     #
@@ -182,11 +182,13 @@ if __name__ == "__main__":
     from respower import respower, respower_plot
 
 
-    energy1 = 200.0 # 5000.0
+    grating = 1
+
     undulator_length = 2.1
 
     Energy = numpy.linspace(250.0, 2500.0, 20)
     Resolution = Energy * 0.0
+    Resolution5 = Energy * 0.0
     Alpha = Energy * 0.0
     Beta = Energy * 0.0
     ImageSize = Energy * 0.0
@@ -196,32 +198,45 @@ if __name__ == "__main__":
     C = Energy * 0.0
 
 
+    if grating == 1:
+        run_shadow = run_shadow_E379
+        dumpfile = "cosmic_scan_energy_grating806eV.dat"
+        k0 = 287444
+        b2 = 0.24736325719129112
+    elif grating == 2:
+        run_shadow = run_shadow_E806
+        dumpfile = "cosmic_scan_energy_grating806eV.dat"
+        k0 = 287444
+        b2 = 0.24736325719129112
+    elif grating == 3:
+        run_shadow = run_shadow_E1714
+        dumpfile = "cosmic_scan_energy_grating806eV.dat"
+        k0 = 287444
+        b2 = 0.24736325719129112
+
     for i,energy1 in enumerate(Energy):
         # trajectories(energies, r, rp, k0, m, b2, verbose=False)
 
         sigmas = get_sigmas_ALSU(energy1,undulator_length)
-        alpha1,beta1 = trajectories(energy1, 25.201, 7.573, 287444, 1, b2=0.24736325719129112, verbose=False)
+        alpha1,beta1 = trajectories(energy1, 25.201, 7.573, k0, 1, b2=b2, verbose=False)
         alpha1 *= 180.0 / numpy.pi
         beta1 *= -180.0 / numpy.pi
 
 
-        #
-        # print("alpha: ",alpha,alpha1)
-        # print("beta: ",beta, beta1)
-
-
         beam = run_shadow(energy1,0.4,alpha1,beta1,sigmas)
-        dict = respower(beam, 11, 1, hlimit=0.5, nolost=True)
 
         print("\n\nset energy: %f eV"%energy1)
         print("alpha: ",alpha1)
         print("beta: ",beta1)
-        print("Resolving power: %f"%dict["resolvingPower"])
+
+        dict = respower(beam, 11, 1, hlimit=0.1, nolost=True)
+        dict5 = respower(beam, 11, 1, hlimit=0.5, nolost=True)
 
 
         # store results
         Energy[i] = energy1
         Resolution[i] = dict["resolvingPower"]
+        Resolution5[i] = dict5["resolvingPower"]
         Alpha[i] = alpha1
         Beta[i] = beta1
         C[i] = numpy.cos(beta1*numpy.pi/180) / numpy.cos(alpha1*numpy.pi/180)
@@ -243,19 +258,16 @@ if __name__ == "__main__":
         Footprint[i] = tkt_m["fwhm"]
 
 
-
-
-
-    # plot(Energy,Resolution)
-
+    #
     # dump to file
-    dumpfile = "cosmic_scan_energy_grating806eV.dat"
+    #
+
     f = open(dumpfile,'w')
     f.write("\n#S 1\n")
-    f.write("#N 9\n")
-    f.write("#L photon energy [eV]  alpha [deg]  beta [deg]  size source V [um]  size [um]  source*M  footprint on grating [m]  C  resolving power\n")
+    f.write("#N 10\n")
+    f.write("#L photon energy [eV]  alpha [deg]  beta [deg]  size source V [um]  size [um]  source*M  footprint on grating [m]  C  resolving power 0.1  resolving power 0.5\n")
     for i in range(Energy.size):
-        f.write("%f   %f   %f   %f   %f   %f   %f   %f   %f\n"%(
+        f.write("%f   %f   %f   %f   %f   %f   %f   %f   %f   %f\n"%(
             Energy[i],
             Alpha[i],
             Beta[i],
@@ -264,6 +276,7 @@ if __name__ == "__main__":
             SourceSize[i]*M[i],
             Footprint[i],
             C[i],
-            Resolution[i]))
+            Resolution[i],
+            Resolution5[i]))
     f.close()
     print("File written to disk: %s"%dumpfile)
