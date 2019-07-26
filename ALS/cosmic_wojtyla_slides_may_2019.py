@@ -16,7 +16,7 @@ from plot_scan_results import get_shadow_result
 
 
 if __name__ == "__main__":
-    #
+
     #
     # inputs
     #
@@ -254,12 +254,12 @@ if __name__ == "__main__":
         y0 = Szp * 2.35 * 25.201 / numpy.cos(Alpha)
         if not do_overplot_shadow_results:
             plot(energies, y0 * 1e3,
-                 yrange=[0,50],
+                 yrange=[0,100],
                  xtitle="Photon energy [eV]", ytitle="Footprint on Grating [mm]")
         else:
             x, y = get_shadow_result(file_shadow_results, "footprint")
             plot(energies, y0*1e3,
                 x, y * 1e3,
-                 yrange=[0,50],
+                yrange=[0,100],
                 xtitle="Photon energy [eV]", ytitle="Footprint on Grating [mm]",
                 legend=["analytical","shadow"])
