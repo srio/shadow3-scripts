@@ -191,6 +191,7 @@ if __name__ == "__main__":
     Beta = Energy * 0.0
     ImageSize = Energy * 0.0
     SourceSize = Energy * 0.0
+    Footprint = Energy * 0.0
     M = Energy * 0.0
     C = Energy * 0.0
 
@@ -210,7 +211,7 @@ if __name__ == "__main__":
 
 
         beam = run_shadow(energy1,0.4,alpha1,beta1,sigmas)
-        dict = respower(beam, 11, 1, nolost=True)
+        dict = respower(beam, 11, 1, hlimit=0.5, nolost=True)
 
         print("\n\nset energy: %f eV"%energy1)
         print("alpha: ",alpha1)
@@ -223,6 +224,9 @@ if __name__ == "__main__":
         Resolution[i] = dict["resolvingPower"]
         Alpha[i] = alpha1
         Beta[i] = beta1
+        C[i] = numpy.cos(beta1*numpy.pi/180) / numpy.cos(alpha1*numpy.pi/180)
+        M[i] = 7.573 / 25.201 / C[i]
+
 
         # run now the monochromatic case to get the monochromatic size
         beam1 = run_shadow(energy1, 0.0,  alpha1, beta1, sigmas)
@@ -230,11 +234,14 @@ if __name__ == "__main__":
         tkt = beam1.histo1(1,nolost=True, ref=23, nbins=100)
         # plot(tkt["bin_path"] * 1e6, tkt["histogram_path"], title="E=%s  S=%s"%(energy1,tkt["fwhm"] * 1e6))
         ImageSize[i] = tkt["fwhm"]*1e6
-
         SourceSize[i] = 2.35 * sigmas[1] * 1e6
 
-        C[i] = numpy.cos(beta1*numpy.pi/180) / numpy.cos(alpha1*numpy.pi/180)
-        M[i] = 7.573 / 25.201 / C[i]
+        # get now the footprint on grating
+        b = Shadow.Beam()
+        b.load("mirr.03")
+        tkt_m = b.histo1(2, nolost=True)
+        Footprint[i] = tkt_m["fwhm"]
+
 
 
 
@@ -245,10 +252,18 @@ if __name__ == "__main__":
     dumpfile = "cosmic_scan_energy_grating806eV.dat"
     f = open(dumpfile,'w')
     f.write("\n#S 1\n")
-    f.write("#N 8\n")
-    f.write("#L photon energy [eV]  alpha [deg]  beta [deg]  size source V [um]  size [um]  source*M  C  resolving power\n")
+    f.write("#N 9\n")
+    f.write("#L photon energy [eV]  alpha [deg]  beta [deg]  size source V [um]  size [um]  source*M  footprint on grating [m]  C  resolving power\n")
     for i in range(Energy.size):
-        f.write("%f   %f   %f   %f   %f   %f   %f   %f\n"%(Energy[i],Alpha[i],Beta[i],SourceSize[i],
-                                                           ImageSize[i],SourceSize[i]*M[i],C[i],Resolution[i]))
+        f.write("%f   %f   %f   %f   %f   %f   %f   %f   %f\n"%(
+            Energy[i],
+            Alpha[i],
+            Beta[i],
+            SourceSize[i],
+            ImageSize[i],
+            SourceSize[i]*M[i],
+            Footprint[i],
+            C[i],
+            Resolution[i]))
     f.close()
     print("File written to disk: %s"%dumpfile)

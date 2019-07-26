@@ -202,15 +202,15 @@ def respower_plot(beam,d,plot_substracted=False,nolost=True):
 if __name__ == "__main__":
 
     beam0 = Shadow.Beam()
-    file = '/Users/srio/Oasys/star.04'
+    # file = '/Users/srio/Oasys/star.04'
 
-    file = "/Users/srio/Oasys/star_slit.dat"
+    file = "C:\\Users\\Manuel\\Oasys\\star_slit.dat"
 
     beam0.load(file)
 
 
 
-    dict = respower(beam0,19,1,nolost=True)
+    dict = respower(beam0,11,1,hlimit=0.5,nolost=True)
     for key in dict.keys():
         print(key," = ",dict[key])
 

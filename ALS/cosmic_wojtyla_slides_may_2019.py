@@ -11,59 +11,63 @@ from srxraylib.plot.gol import plot
 
 from grating_tools import m2ev, solve_grating_equation, vls_coefficients_calculate, vls_coefficients_convert_to_shadow
 from grating_tools import trajectories
-from source_tools import get_sigmas_radiation
+from source_tools import get_sigmas_ALSU
+from plot_scan_results import get_shadow_result
 
 
 if __name__ == "__main__":
+    #
     #
     # inputs
     #
 
     do_plot = True
+    do_overplot_shadow_results = True
+
+
+    grating = 2 # 1: optimized at 379.1 eV,  2: at 806 eV,  3: at 1714 eV
 
     m = 1 # order
 
-
     Emin = 250.0
     Emax = 2500.0
-
-    print("Emin=%5.3f eV,Emax=%5.3f eV "%(Emin,Emax))
-
+    undulator_length = 2.1
 
     # grating positions
-
     r = 25.201
     rp = 7.573
     L = r + rp
-    print("r=%f, rp=%f, L=%f "%(r,rp, L))
 
+    print("Inputs:\n  Emin=%5.3f eV,Emax=%5.3f eV "%(Emin,Emax))
+    print("  r=%f, rp=%f, L=%f "%(r,rp, L))
+
+    #
+    #
+    #
+    if grating == 1:
+        file_shadow_results = "cosmic_scan_energy_grating379eV.dat"
+    elif grating == 2:
+        file_shadow_results = "cosmic_scan_energy_grating806eV.dat"
+    elif grating == 3:
+        file_shadow_results = "cosmic_scan_energy_grating1714eV.dat"
 
     #
     # source size
     #
 
     energies = numpy.linspace(Emin, Emax, 100)
-    sr, srp = get_sigmas_radiation(energies, 2.1)
 
+    Sx,Sz,Sxp,Szp = get_sigmas_ALSU(energies, undulator_length)
 
-    # Sx = 17.5e-6
-    # Sy = 19.4e-6
-    #
-    # Sxp = 20.2e-6
-    # Syp = 20.0e-6
-
-    sx, sz, sxp, szp = 12.1e-6, 14.7e-6, 5.7e-6, 4.7e-6
-
-    # these are arrays
-    Sx = numpy.sqrt(sx ** 2 + sr ** 2)
-    Sz = numpy.sqrt(sz ** 2 + sr ** 2)
-    Sxp = numpy.sqrt(sxp ** 2 + srp ** 2)
-    Szp = numpy.sqrt(szp ** 2 + srp ** 2)
-
-    plot(energies,Sz*1e6,ytitle="Source Vertical sigma [um]")
-
-
-
+    if do_plot:
+        if not do_overplot_shadow_results:
+            plot(energies, Sz * 1e6, ytitle="Source Vertical sigma [um]", show=True)
+        else:
+            x, y = get_shadow_result(file_shadow_results, "source_size")
+            plot(energies, Sz*2.35*1e6, x, y,
+                 ytitle="Source Vertical FWHM [um]",
+                 legend=["analytical","used in shadow"],
+                 show=True)
 
 
 
@@ -72,16 +76,12 @@ if __name__ == "__main__":
     # parameters of the used grating
     #
 
-    grating = 3
+
 
     if grating == 1:
         Eopt = 379.1
         # for Eopt
-        sr, srp = get_sigmas_radiation(Eopt, 2.1)
-        Sx_opt = numpy.sqrt(sx ** 2 + sr ** 2)
-        Sz_opt = numpy.sqrt(sz ** 2 + sr ** 2)
-        Sxp_opt = numpy.sqrt(sxp ** 2 + srp ** 2)
-        Szp_opt = numpy.sqrt(szp ** 2 + srp ** 2)
+        Sx_opt,Sz_opt,Sxp_opt,Szp_opt = get_sigmas_ALSU(Eopt, undulator_length)
 
         C = 1.6320
         b2 = -0.23513474102160892 * (-1.0)
@@ -91,11 +91,7 @@ if __name__ == "__main__":
     elif grating == 2:
         Eopt = 806.0
         # for Eopt
-        sr, srp = get_sigmas_radiation(Eopt, 2.1)
-        Sx_opt = numpy.sqrt(sx ** 2 + sr ** 2)
-        Sz_opt = numpy.sqrt(sz ** 2 + sr ** 2)
-        Sxp_opt = numpy.sqrt(sxp ** 2 + srp ** 2)
-        Szp_opt = numpy.sqrt(szp ** 2 + srp ** 2)
+        Sx_opt,Sz_opt,Sxp_opt,Szp_opt = get_sigmas_ALSU(Eopt, undulator_length)
 
         C = 1.5772
         b2 = -0.24736325719129112  * (-1.0)
@@ -105,11 +101,7 @@ if __name__ == "__main__":
     elif grating == 3:
         Eopt = 1714.4
         # for Eopt
-        sr, srp = get_sigmas_radiation(Eopt, 2.1)
-        Sx_opt = numpy.sqrt(sx ** 2 + sr ** 2)
-        Sz_opt = numpy.sqrt(sz ** 2 + sr ** 2)
-        Sxp_opt = numpy.sqrt(sxp ** 2 + srp ** 2)
-        Szp_opt = numpy.sqrt(szp ** 2 + srp ** 2)
+        Sx_opt,Sz_opt,Sxp_opt,Szp_opt = get_sigmas_ALSU(Eopt, undulator_length)
 
         C = 1.7313
         b2 = -0.21796876033899018 * (-1)
@@ -127,15 +119,15 @@ if __name__ == "__main__":
     print("for energy=%f eV, alpha=%f deg, beta=%f deg" % (Eopt, alpha*180/numpy.pi, beta*180/numpy.pi))
     wavelength = m2ev / Eopt
 
-    size_at_source_fwhm = (2.35 * Sz_opt)
+    size_at_source_fwhm = (2.35 * Sz)
     size_at_image_fwhm = size_at_source_fwhm * rp / r / C
 
-    delta_lambda0_exit = k0**(-1) / numpy.abs(m) * numpy.cos(beta) * size_at_image_fwhm / rp
-    delta_lambda0_source = k0**(-1) / numpy.abs(m) * numpy.cos(alpha) * size_at_source_fwhm / r
-    delta_lambda0 = numpy.sqrt( delta_lambda0_source**2 + delta_lambda0_exit**2)
+    # delta_lambda0_exit = k0**(-1) / numpy.abs(m) * numpy.cos(beta) * size_at_image_fwhm / rp
+    # delta_lambda0_source = k0**(-1) / numpy.abs(m) * numpy.cos(alpha) * size_at_source_fwhm / r
+    # delta_lambda0 = numpy.sqrt( delta_lambda0_source**2 + delta_lambda0_exit**2)
 
-    print("Delta_lambda: %g, %g, %g"%(delta_lambda0_source,delta_lambda0_exit,delta_lambda0))
-    print("Resolving power: %g, %g, %g"%(wavelength/delta_lambda0_source,wavelength/delta_lambda0_exit,wavelength/delta_lambda0))
+    # print("Delta_lambda: %g, %g, %g"%(delta_lambda0_source,delta_lambda0_exit,delta_lambda0))
+    # print("Resolving power: %g, %g, %g"%(wavelength/delta_lambda0_source,wavelength/delta_lambda0_exit,wavelength/delta_lambda0))
 
 
     #
@@ -151,12 +143,29 @@ if __name__ == "__main__":
 
 
     if do_plot:
-        plot(energies,Alpha*180/numpy.pi,energies,-Beta*180/numpy.pi,energies,(Alpha-Beta)*0.5*180/numpy.pi,
-         xtitle="Photon energy [eV]",ytitle="Angle [deg]",legend=["alpha","beta","theta"])
+        if not do_overplot_shadow_results:
+            plot(energies,Alpha*180/numpy.pi,energies,
+                -Beta*180/numpy.pi,energies,(Alpha-Beta)*0.5*180/numpy.pi,
+                xtitle="Photon energy [eV]",
+                ytitle="Angle [deg]",legend=["alpha","beta","theta"])
+        else:
+            e, a = get_shadow_result(file_shadow_results, "alpha")
+            e, b = get_shadow_result(file_shadow_results, "beta")
+            plot(energies,Alpha*180/numpy.pi,
+                 energies,-Beta*180/numpy.pi, #energies,(Alpha-Beta)*0.5*180/numpy.pi,
+                 e,a,
+                 e,b,
+                xtitle="Photon energy [eV]",
+                ytitle="Angle [deg]",legend=["alpha","beta","alpha (shadow)","beta (shadow)"])
 
-    # if do_plot:
-    #     plot(energies,numpy.cos(Beta)/numpy.cos(Alpha),xtitle="Photon energy [eV]",ytitle="C")
 
+    if do_plot:
+        if not do_overplot_shadow_results:
+            plot(energies,numpy.cos(Beta)/numpy.cos(Alpha),xtitle="Photon energy [eV]",ytitle="C")
+        else:
+            x, y = get_shadow_result(file_shadow_results, "C")
+            plot(energies, numpy.cos(Beta) / numpy.cos(Alpha),  x, y,
+                 xtitle="Photon energy [eV]", ytitle="C", legend=["analytical","used in shadow"])
 
     #
     # #
@@ -196,7 +205,16 @@ if __name__ == "__main__":
 
     Size_at_slit = 2.35 * Sz * rp / r / (numpy.cos(Beta)/numpy.cos(Alpha))
 
-    plot(energies, Size_at_slit*1e6, xtitle="Photon energy [eV]", ytitle="Size at slit [um]")
+    if do_plot:
+        if not do_overplot_shadow_results:
+            plot(energies, Size_at_slit*1e6, xtitle="Photon energy [eV]", ytitle="Size at slit [um]")
+        else:
+            x, y = get_shadow_result(file_shadow_results, "image_size")
+            plot(energies, Size_at_slit*1e6,
+                 x, y,
+                 xtitle="Photon energy [eV]", ytitle="Size at slit [um]",
+                 legend=["analytical","shadow"])
+
 
     #
     # resolving power
@@ -210,8 +228,32 @@ if __name__ == "__main__":
 
 
     if do_plot:
-        plot(energies,resolving_power_source,
-             energies, resolving_power_image,
-             energies, (m2ev / energies) / numpy.sqrt(delta_lambda0_source**2 + delta_lambda_image**2),
-             xtitle="Photon energy [eV]",ytitle="Resolving power",
-             legend=["source","image","combined"])
+        if not do_overplot_shadow_results:
+            plot(energies,resolving_power_source,
+                 energies, resolving_power_image,
+                 energies, (m2ev / energies) / numpy.sqrt(delta_lambda0_source**2 + delta_lambda_image**2),
+                 xtitle="Photon energy [eV]",ytitle="Resolving power",
+                 legend=["source","image","combined"])
+        else:
+            x, y = get_shadow_result(file_shadow_results, "resolving_power")
+            plot(energies,resolving_power_source,
+                 energies, resolving_power_image,
+                 # energies, (m2ev / energies) / numpy.sqrt(delta_lambda0_source**2 + delta_lambda_image**2),
+                 x, y,
+                 xtitle="Photon energy [eV]",ytitle="Resolving power",
+                 legend=["source","image","shadow"],yrange=[0,15000])
+
+
+    if do_plot:
+        y0 = Szp * 2.35 * 25.201 / numpy.cos(Alpha)
+        if not do_overplot_shadow_results:
+            plot(energies, y0 * 1e3,
+                 yrange=[0,50],
+                 xtitle="Photon energy [eV]", ytitle="Footprint on Grating [mm]")
+        else:
+            x, y = get_shadow_result(file_shadow_results, "footprint")
+            plot(energies, y0*1e3,
+                x, y * 1e3,
+                 yrange=[0,50],
+                xtitle="Photon energy [eV]", ytitle="Footprint on Grating [mm]",
+                legend=["analytical","shadow"])
