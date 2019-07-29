@@ -538,7 +538,7 @@ if __name__ == "__main__":
     from respower import respower, respower_plot
 
 
-    grating = 2
+    grating = 1
 
     undulator_length = 2.1
 
@@ -604,14 +604,14 @@ if __name__ == "__main__":
         # tkt = beam1.histo1(1,nolost=True, ref=23, nbins=100)
         tkt = dict["histo_dict"]
         # plot(tkt["bin_path"] * 1e6, tkt["histogram_path"], title="E=%s  S=%s"%(energy1,tkt["fwhm"] * 1e6))
-        ImageSize[i] = tkt["fwhm"]*1e6
+        ImageSize[i] = tkt["fwhm_subpixel"]*1e6
         SourceSize[i] = 2.35 * sigmas[1] * 1e6
 
         # get now the footprint on grating
         b = Shadow.Beam()
         b.load("mirr.03")
         tkt_m = b.histo1(2, nolost=True)
-        Footprint[i] = tkt_m["fwhm"]
+        Footprint[i] = tkt_m["fwhm_subpixel"]
 
 
     #

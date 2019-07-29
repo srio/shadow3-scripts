@@ -25,7 +25,7 @@ if __name__ == "__main__":
     do_overplot_shadow_results = True
 
 
-    grating = 2 # 1: optimized at 379.1 eV,  2: at 806 eV,  3: at 1714 eV
+    grating = 1 # 1: optimized at 379.1 eV,  2: at 806 eV,  3: at 1714 eV
 
     m = 1 # order
 
