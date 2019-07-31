@@ -67,10 +67,10 @@ class dabam(object):
             'multiply':1.0,          # 'Multiply input profile (slope or height) by this number (to play with StDev values). '
             'oversample':0.0,        # 'Oversample factor for abscissas. Interpolate profile foor a new one with this factor times npoints'
             'useHeightsOrSlopes':-1, # 'Force calculations using profile heights (0) or slopes (1). Overwrites FILE_FORMAT keyword. Default=-1 (like FILE_FORMAT)'
-            'useAbscissasColumn':0,  # 'Use abscissas column index. '
-            'useOrdinatesColumn':-1, # 'Use ordinates column index. Defaut=-1 use the metadata Y_COLUMN_INDEX or 1 if undefined'
+            'useAbscissasColumn':-1,  # 'Use abscissas column index. Defaut=-1 use the metadata COLUMN_INDEX_ABSCISSAS or 0 if undefined''
+            'useOrdinatesColumn':-1, # 'Use ordinates column index. Defaut=-1 use the metadata COLUMN_INDEX_ORDINATES or 1 if undefined'
             'plot':None,             # plot data
-            'runTests':False,        # run tests cases
+            # 'runTests':False,        # run tests cases
             'summary':False,         # get summary of DABAM profiles
             }
         #to load profiles: TODO: rename some variables to more meaningful names
@@ -102,7 +102,7 @@ class dabam(object):
         return dm
 
     def initialize_from_external_data(input,
-                              column_index_abscisa=0,
+                              column_index_abscissas=0,
                               column_index_ordinates=1,
                               skiprows=1,
                               useHeightsOrSlopes=0,
@@ -114,7 +114,7 @@ class dabam(object):
 
         dm.rawdata = numpy.loadtxt(input, skiprows=skiprows)
 
-        dm.set_input_useAbscissasColumn(column_index_abscisa)
+        dm.set_input_useAbscissasColumn(column_index_abscissas)
         dm.set_input_useOrdinatesColumn(column_index_ordinates)
 
         dm.set_input_localFileRoot("<none>")  # filename.rsplit( ".", 1 )[ 0 ])
@@ -139,7 +139,8 @@ class dabam(object):
         for i in range(1, dm.rawdata.shape[1]):
             dm.metadata["Y%d_FACTOR" % i] = to_SI_ordinates
 
-        dm.metadata["Y_COLUMN_INDEX"] = column_index_ordinates
+        dm.metadata["COLUMN_INDEX_ABSCISSAS"] = column_index_abscissas
+        dm.metadata["COLUMN_INDEX_ORDINATES"] = column_index_ordinates
 
         dm.metadata["DETRENDING"] = detrending_flag
 
@@ -154,6 +155,16 @@ class dabam(object):
     #setters (recommended to use setters for changing input and not setting directly the value in self.inputs,
     #         because python does not give errors if the key does not exist but create a new one!)
     #
+
+    def get_server_url(self):
+        return self.server
+
+    def set_server_url(self,server):
+        self.server = server
+
+    def set_server_local(self,directory):
+        self.set_input_localFileRoot(directory)
+
 
     def reset(self):
         self.__init__()
@@ -193,8 +204,8 @@ class dabam(object):
         self.inputs["useOrdinatesColumn"] = value
     def set_input_plot(self,value):
         self.inputs["plot"] = value
-    def set_input_runTests(self,value):
-        self.inputs["runTests"] = value
+    # def set_input_runTests(self,value):
+    #     self.inputs["runTests"] = value
     def set_input_summary(self,value):
         self.inputs["summary"] = value
 
@@ -223,7 +234,7 @@ class dabam(object):
             self.set_input_useAbscissasColumn ( dict["useAbscissasColumn"]  )
             self.set_input_useOrdinatesColumn ( dict["useOrdinatesColumn"]  )
             self.set_input_plot               ( dict["plot"]                )
-            self.set_input_runTests           ( dict["runTests"]            )
+            # self.set_input_runTests           ( dict["runTests"]            )
             self.set_input_summary            ( dict["summary"]            )
         except:
             raise Exception("Failed setting dabam input parameters from dictionary")
@@ -271,10 +282,10 @@ class dabam(object):
         if key == 'multiply':           return 'Multiply input profile (slope or height) by this number (to play with StDev values). Default=%4.2f'%self.get_input_value("multiply")
         if key == 'oversample':         return 'Oversample factor for the number of abscissas points. 0=No oversample. (Default=%2.1f)'%self.get_input_value("oversample")
         if key == 'useHeightsOrSlopes': return 'Force calculations using profile heights (0) or slopes (1). If -1, used metadata keyword FILE_FORMAT. Default=%d'%self.get_input_value("useHeightsOrSlopes")
-        if key == 'useAbscissasColumn': return 'Use abscissas column index. Default=%d'%self.get_input_value("useAbscissasColumn")
-        if key == 'useOrdinatesColumn': return 'Use ordinates column index. Default=%d use the metadata Y_COLUMN_INDEX or 1 if undefined'%self.get_input_value("useOrdinatesColumn")
+        if key == 'useAbscissasColumn': return 'Use abscissas column index. Default=%d use the metadata COLUMN_INDEX_ABSCISSAS or 0 if undefined'%self.get_input_value("useAbscissasColumn")
+        if key == 'useOrdinatesColumn': return 'Use ordinates column index. Default=%d use the metadata COLUMN_INDEX_ORDINATES or 1 if undefined'%self.get_input_value("useOrdinatesColumn")
         if key == 'plot':               return 'Plot: all heights slopes psd_h psd_s csd_h csd_s. histo_s histo_h acf_h acf_s. Default=%s'%repr(self.get_input_value("plot"))
-        if key == 'runTests':           return 'Run test cases'
+        # if key == 'runTests':           return 'Run test cases'
         if key == 'summary':            return 'gets a summary of all DABAM profiles'
         return ''
 
@@ -298,7 +309,7 @@ class dabam(object):
         if key == 'useAbscissasColumn':  return 'A'
         if key == 'useOrdinatesColumn':  return 'O'
         if key == 'plot':                return 'P'
-        if key == 'runTests':            return 'T'
+        # if key == 'runTests':            return 'T'
         if key == 'summary':             return 'Y'
         return '?'
 
@@ -504,7 +515,7 @@ class dabam(object):
         # dm.metadata["FILE_FORMAT"]         = None
         # dm.metadata["FILE_HEADER_LINES"]   = None
         # dm.metadata["X1_FACTOR"]           = None
-        # dm.metadata["Y_COLUMN_INDEX"]      = None
+        # dm.metadata["COLUMN_INDEX_ORDINATES"]      = None
         # for i in range(4):
         #     dm.metadata["Y1_FACTOR"%(i+1)] = None
         #
@@ -870,8 +881,8 @@ class dabam(object):
         parser.add_argument('entryNumber', nargs='?', metavar='N', type=int, default=self.get_input_value('entryNumber'),
             help=self.get_input_value_help('entryNumber'))
 
-        parser.add_argument('-'+self.get_input_value_short_name('runTests'), '--runTests', action='store_true',
-            help=self.get_input_value_help('runTests'))
+        # parser.add_argument('-'+self.get_input_value_short_name('runTests'), '--runTests', action='store_true',
+        #     help=self.get_input_value_help('runTests'))
 
         parser.add_argument('-'+self.get_input_value_short_name('summary'), '--summary', action='store_true',
             help=self.get_input_value_help('summary'))
@@ -945,7 +956,7 @@ class dabam(object):
         self.set_input_useAbscissasColumn(args.useAbscissasColumn)
         self.set_input_useOrdinatesColumn(args.useOrdinatesColumn)
         self.set_input_plot(args.plot)
-        self.set_input_runTests(args.runTests)
+        # self.set_input_runTests(args.runTests)
         self.set_input_summary(args.summary)
 
     def _file_root(self):
@@ -962,6 +973,7 @@ class dabam(object):
         if self.is_remote_access():
             # metadata file
             myfileurl = self.server+self.file_metadata()
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",myfileurl)
             u = urlopen(myfileurl)
             ur = u.read()
             ur1 = ur.decode(encoding='UTF-8')
@@ -1009,13 +1021,16 @@ class dabam(object):
         #
 
         col_abscissas = int( self.get_input_value("useAbscissasColumn") )
-
+        if col_abscissas == -1:
+            try:
+                col_abscissas =  self.metadata["COLUMN_INDEX_ABSCISSAS"]
+            except:
+                col_abscissas = 0
 
         col_ordinates = int( self.get_input_value("useOrdinatesColumn") )
-
         if col_ordinates == -1:
             try:
-                col_ordinates =  self.metadata["Y_COLUMN_INDEX"]
+                col_ordinates =  self.metadata["COLUMN_INDEX_ORDINATES"]
             except:
                 col_ordinates = 1
 
@@ -1911,11 +1926,11 @@ def main():
     dm._set_from_command_line()   # get arguments of dabam command line
 
 
-    if dm.get_input_value("runTests"): # if runTests selected
-        dm.set_input_outputFileRoot("")      # avoid output files
-        test_dabam_names()
-        test_dabam_stdev_slopes()
-    elif dm.get_input_value("summary"):
+    # if dm.get_input_value("runTests"): # if runTests selected
+    #     dm.set_input_outputFileRoot("")      # avoid output files
+    #     test_dabam_names()
+    #     test_dabam_stdev_slopes()
+    if dm.get_input_value("summary"):
         print(dabam_summary())
     else:
         dm.load()        # access data
@@ -1934,4 +1949,10 @@ if __name__ == '__main__':
     # plt.show()
 
     main()
+    # dm = dabam.initialize_from_entry_number(1)
 
+    # dm0 = dabam()
+    # # dm0.set_server_local("/home/manuel/OASYS1.2/dabam/data/dabam-001")
+    # entry = 1
+    # dm0.set_input_localFileRoot("/home/manuel/OASYS1.2/dabam/data/dabam-%03d"%entry)
+    # dm0.load(1)
