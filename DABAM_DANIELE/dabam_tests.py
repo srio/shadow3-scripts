@@ -202,15 +202,43 @@ def test_write_dabam_formatted_files():
     dm.write_output_dabam_files(filename_root="tmp-DABAM-YYY")
 
 
+def test_local_server():
+
+    import urllib.request
+    urllib.request.urlretrieve ("http://ftp.esrf.eu/pub/scisoft/dabam/data/dabam-081.txt", "/tmp/dabam-081.txt")
+    urllib.request.urlretrieve("http://ftp.esrf.eu/pub/scisoft/dabam/data/dabam-081.dat", "/tmp/dabam-081.dat")
+    dm = dabam.initialize_from_local_server(81,"/tmp")
+    m0 = dm.momentsHeights, dm.momentsSlopes
+
+    # reset to remote server
+
+    dm.set_default_server()
+    dm.set_input_entryNumber(81)
+    dm.make_calculations()
+
+    m1 = dm.momentsHeights, dm.momentsSlopes
+
+    # set again to local serer
+    dm = dabam.initialize_from_local_server(81,"/tmp")
+    m2 = dm.momentsHeights, dm.momentsSlopes
+
+    assert_almost_equal(m0, m1)
+    assert_almost_equal(m0, m2)
+
+
+
+
 if __name__ == "__main__":
 
     # test_dabam_names()
-    test_dabam_stdev_slopes()
+    # test_dabam_stdev_slopes()
 
     # test_entry()
     # test_entry_elliptical()
     # test_entry_text()
     # test_entry_file()
     # test_write_dabam_formatted_files()
+
+    test_local_server()
 
 

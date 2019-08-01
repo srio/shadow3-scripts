@@ -19,13 +19,14 @@ dabam: (dataBase for metrology)
            20130902 srio@esrf.eu, written
            20131109 srio@esrf.eu, added command line arguments, access metadata
            20151103 srio@esrf.eu, restructured to OO
-           20151118 srio@esrf.eu, rcleanied and tested
+           20151118 srio@esrf.eu, cleaned and tested
+           20190731 srio@lbl.gov, updated version, allows reading external files, change server, etc.
 
 """
 
 __author__ = "Manuel Sanchez del Rio"
 __contact__ = "srio@esrf.eu"
-__copyright = "ESRF, 2013-2015"
+__copyright = "ESRF, 2013-2015; LBNL, 2019"
 
 
 import numpy
@@ -35,6 +36,7 @@ import copy
 import sys
 import argparse
 import json
+import os
 from io import StringIO
 
 try:
@@ -50,7 +52,10 @@ class dabam(object):
     def __init__(self):
         self.description="dabam.py: python program to access and evaluate DAta BAse for Metrology (DABAM) files. See http://ftp.esrf.eu/pub/scisoft/dabam/README.md"
 
-        self.server = "http://ftp.esrf.eu/pub/scisoft/dabam/data/"
+
+        self.is_remote_access = True
+        self.server = self.get_default_server() # "http://ftp.esrf.eu/pub/scisoft/dabam/data/"
+        self.server_local = ""
 
         self.inputs = {
             'entryNumber':1,         # 'an integer indicating the DABAM entry number'
@@ -101,7 +106,21 @@ class dabam(object):
         dm.load(entry_number)
         return dm
 
-    def initialize_from_external_data(input,
+    @classmethod
+    def initialize_from_local_server(cls,entry,server=None):
+        dm0 = dabam()
+        dm0.is_remote_access = False
+        if server is not None:
+            dm0.set_server(server)
+        dm0.set_input_entryNumber(entry)
+
+        dm0.load()
+
+        return dm0
+
+
+    @classmethod
+    def initialize_from_external_data(cls, input,
                               column_index_abscissas=0,
                               column_index_ordinates=1,
                               skiprows=1,
@@ -111,7 +130,7 @@ class dabam(object):
                               detrending_flag=-1,
                               ):
         dm = dabam()
-
+        dm.is_remote_access = False
         dm.rawdata = numpy.loadtxt(input, skiprows=skiprows)
 
         dm.set_input_useAbscissasColumn(column_index_abscissas)
@@ -156,14 +175,25 @@ class dabam(object):
     #         because python does not give errors if the key does not exist but create a new one!)
     #
 
-    def get_server_url(self):
-        return self.server
+    def get_default_server(self):
+        return "http://ftp.esrf.eu/pub/scisoft/dabam/data/"
 
-    def set_server_url(self,server):
-        self.server = server
+    def set_default_server(self):
+        self.set_server(self.get_default_server())
 
-    def set_server_local(self,directory):
-        self.set_input_localFileRoot(directory)
+    def set_server(self,server):
+        if server.find("//") >=0:
+            self.is_remote_access = True
+            self.server = server
+        else:
+            self.is_remote_access = False
+            self.server_local = server
+
+    def get_server(self,directory):
+        if self.is_remote_access:
+            return self.server_local
+        else:
+            return self.server_local
 
 
     def reset(self):
@@ -176,6 +206,8 @@ class dabam(object):
         self.inputs["silent"] = value
     def set_input_localFileRoot(self,value):
         self.inputs["localFileRoot"] = value
+        if value is not None:
+            self.is_remote_access = False
     def set_input_outputFileRoot(self,value):
         self.inputs["outputFileRoot"] = value
     def set_input_setDetrending(self,value):
@@ -243,14 +275,10 @@ class dabam(object):
     # tools
     #
     def is_remote_access(self):
-        if (self.get_input_value("localFileRoot") is None):
-            remoteAccess = 1  # 0=Local file, 1=Remote file
-        else:
-            remoteAccess = 0  # 0=Local file, 1=Remote file
-        return remoteAccess
+        return self.is_remote_access
 
     def set_remote_access(self):
-        self.set_input_localFileRoot(None)
+        self.is_remote_access = True
 
     #
     #getters
@@ -285,7 +313,6 @@ class dabam(object):
         if key == 'useAbscissasColumn': return 'Use abscissas column index. Default=%d use the metadata COLUMN_INDEX_ABSCISSAS or 0 if undefined'%self.get_input_value("useAbscissasColumn")
         if key == 'useOrdinatesColumn': return 'Use ordinates column index. Default=%d use the metadata COLUMN_INDEX_ORDINATES or 1 if undefined'%self.get_input_value("useOrdinatesColumn")
         if key == 'plot':               return 'Plot: all heights slopes psd_h psd_s csd_h csd_s. histo_s histo_h acf_h acf_s. Default=%s'%repr(self.get_input_value("plot"))
-        # if key == 'runTests':           return 'Run test cases'
         if key == 'summary':            return 'gets a summary of all DABAM profiles'
         return ''
 
@@ -309,7 +336,6 @@ class dabam(object):
         if key == 'useAbscissasColumn':  return 'A'
         if key == 'useOrdinatesColumn':  return 'O'
         if key == 'plot':                return 'P'
-        # if key == 'runTests':            return 'T'
         if key == 'summary':             return 'Y'
         return '?'
 
@@ -331,158 +357,18 @@ class dabam(object):
             pass
         else:
             self.set_input_entryNumber(entry)
-
         # load data and metadata
         self._load_file_metadata()
         self._load_file_data()
 
+
+
         # test consistency
-        if (self.get_input_value("localFileRoot") is None):
+        if self.is_remote_access:
             if self.get_input_value("entryNumber") <= 0:
                 raise Exception("Error: entry number must be non-zero positive for remote access.")
 
         self.make_calculations()
-
-
-    # def load_external_profile(self,x,y,
-    #         type=None, # "heights" or "slopes" -- deprecated, use FILE_FORMAT instead
-    #         FILE_FORMAT=2,
-    #         FILE_HEADER_LINES=0,
-    #         X1_FACTOR=1.0,
-    #         Y1_FACTOR=1.0,
-    #         YEAR_FABRICATION=None,
-    #         SURFACE_SHAPE="",
-    #         FUNCTION=None,
-    #         LENGTH=None,
-    #         WIDTH=None,
-    #         THICK=None,
-    #         LENGTH_OPTICAL=None,
-    #         SUBSTRATE=None,
-    #         COATING=None,
-    #         FACILITY=None,
-    #         INSTRUMENT=None,
-    #         POLISHING=None,
-    #         ENVIRONMENT=None,
-    #         SCAN_DATE=None,
-    #         PLOT_TITLE_X1=None,
-    #         PLOT_TITLE_Y1=None,
-    #         PLOT_TITLE_Y2=None,
-    #         PLOT_TITLE_Y3=None,
-    #         PLOT_TITLE_Y4=None,
-    #         CALC_HEIGHT_RMS=None,
-    #         CALC_HEIGHT_RMS_FACTOR=None,
-    #         CALC_SLOPE_RMS=None,
-    #         CALC_SLOPE_RMS_FACTOR=None,
-    #         USER_EXAMPLE=None,
-    #         USER_REFERENCE=None,
-    #         USER_ADDED_BY=None,
-    #                           ):
-    #     """
-    #     load a profile from python arrays
-    #     :param x: the abscissas (usually in m)
-    #     :param y: the ordinates (heights in m or slopes in rad)
-    #     :param type: set to 'heights' (default) of 'slopes' depending the type of input
-    #     :return:
-    #     """
-    #
-    #
-    #     self.set_input_entryNumber(-1)
-    #     self.set_input_multiply(1.0)
-    #     self.set_input_oversample(0.0)
-    #     #self.set_input_setDetrending(-1)
-    #     self.set_input_useHeightsOrSlopes(0)
-    #     self.set_input_localFileRoot("<none (from python variable)>")
-    #     self.rawdata = numpy.vstack((x,y)).T
-    #     self.metadata = {}
-    #
-    #
-    #     self.metadata["FILE_FORMAT"] = FILE_FORMAT
-    #     if FILE_FORMAT == 1:
-    #         self.set_input_useHeightsOrSlopes(1)
-    #     elif FILE_FORMAT == 2:
-    #         self.set_input_useHeightsOrSlopes(0)
-    #
-    #     # this is redundant, now deprecated
-    #     if type is not None:
-    #         if type == "slopes":
-    #             self.metadata["FILE_FORMAT"] = 1
-    #             self.set_input_useHeightsOrSlopes(1)
-    #         elif type == "heights":
-    #             self.metadata["FILE_FORMAT"] = 2
-    #             self.set_input_useHeightsOrSlopes(0)
-    #
-    #
-    #     self.metadata["FILE_HEADER_LINES"] = FILE_HEADER_LINES
-    #     self.metadata["X1_FACTOR"] = X1_FACTOR
-    #     self.metadata["Y1_FACTOR"] = Y1_FACTOR
-    #
-    #     self.metadata["YEAR_FABRICATION"]       =  YEAR_FABRICATION
-    #     self.metadata["SURFACE_SHAPE"]          =  SURFACE_SHAPE
-    #     self.metadata["FUNCTION"]               =  FUNCTION
-    #     self.metadata["LENGTH"]                 =  LENGTH
-    #     self.metadata["WIDTH"]                  =  WIDTH
-    #     self.metadata["THICK"]                  =  THICK
-    #     self.metadata["LENGTH_OPTICAL"]         =  LENGTH_OPTICAL
-    #     self.metadata["SUBSTRATE"]              =  SUBSTRATE
-    #     self.metadata["COATING"]                =  COATING
-    #     self.metadata["FACILITY"]               =  FACILITY
-    #     self.metadata["INSTRUMENT"]             =  INSTRUMENT
-    #     self.metadata["POLISHING"]              =  POLISHING
-    #     self.metadata["ENVIRONMENT"]            =  ENVIRONMENT
-    #     self.metadata["SCAN_DATE"]              =  SCAN_DATE
-    #     self.metadata["PLOT_TITLE_X1"]          =  PLOT_TITLE_X1
-    #     self.metadata["PLOT_TITLE_Y1"]          =  PLOT_TITLE_Y1
-    #     self.metadata["PLOT_TITLE_Y2"]          =  PLOT_TITLE_Y2
-    #     self.metadata["PLOT_TITLE_Y3"]          =  PLOT_TITLE_Y3
-    #     self.metadata["PLOT_TITLE_Y4"]          =  PLOT_TITLE_Y4
-    #     self.metadata["CALC_HEIGHT_RMS"]        =  CALC_HEIGHT_RMS
-    #     self.metadata["CALC_HEIGHT_RMS_FACTOR"] =  CALC_HEIGHT_RMS_FACTOR
-    #     self.metadata["CALC_SLOPE_RMS"]         =  CALC_SLOPE_RMS
-    #     self.metadata["CALC_SLOPE_RMS_FACTOR"]  =  CALC_SLOPE_RMS_FACTOR
-    #     self.metadata["USER_EXAMPLE"]           =  USER_EXAMPLE
-    #     self.metadata["USER_REFERENCE"]         =  USER_REFERENCE
-    #     self.metadata["USER_ADDED_BY"]          =  USER_ADDED_BY
-    #
-    #
-    #     # self.metadata["SURFACE_SHAPE"] = ""
-    #     # self.metadata["FACILITY"] = ""
-    #     # self.metadata["CALC_SLOPE_RMS"] = None
-    #     # self.metadata["CALC_HEIGHT_RMS"] = None
-    #
-    #
-    #
-    #     self.set_input_useAbscissasColumn(0)
-    #     self.set_input_useOrdinatesColumn(1)
-    #
-    #     # #calculate detrended profiles
-    #     # self._calc_detrended_profiles()
-    #     #
-    #     # #calculate psd
-    #     # self._calc_psd()
-    #     #
-    #     # #calculate histograms
-    #     # self._calc_histograms()
-    #     #
-    #     # #calculate moments
-    #     # self.momentsHeights = moment(self.zHeights)
-    #     # self.momentsSlopes = moment(self.zSlopes)
-    #     #
-    #     # # write files
-    #     # if self.get_input_value("outputFileRoot") != "":
-    #     #     self._write_output_files()
-    #     #
-    #     # #write shadow file
-    #     # if self.get_input_value("shadowCalc"):
-    #     #     self._write_file_for_shadow()
-    #     #     if not(self.get_input_value("silent")):
-    #     #         outFile = self.get_input_value("outputFileRoot")+'Shadow.dat'
-    #     #         print ("File "+outFile+" for SHADOW written to disk.")
-    #     #
-    #     # #info
-    #     # if not(self.get_input_value("silent")):
-    #     #     print(self.info_profiles())
-    #
-    #     self._make_calculations()
 
     def metadata_set_info(self,
                           YEAR_FABRICATION=None,
@@ -509,7 +395,7 @@ class dabam(object):
                           ):
 
         #
-        # do not touch these tags
+        # do not change these tags
         #
 
         # dm.metadata["FILE_FORMAT"]         = None
@@ -645,12 +531,20 @@ class dabam(object):
         #;
         #
         txt += '\n---------- profile results -------------------------\n'
-        if (self.get_input_value("localFileRoot") is None):
+        if self.is_remote_access:
             txt += 'Remote directory:\n   %s\n'%self.server
         txt += 'Data File:     %s\n'%self.file_data()
         txt += 'Metadata File: %s\n'%self.file_metadata()
         try:
-            txt += 'Surface shape: %s\n'%(self.metadata['SURFACE_SHAPE'])
+            txt += "\nUser reference: %s\n"%self.metadata["USER_REFERENCE"]
+        except:
+            pass
+        try:
+            txt += "Added by (user): %s\n"%self.metadata["USER_ADDED_BY"]
+        except:
+            pass
+        try:
+            txt += '\nSurface shape: %s\n'%(self.metadata['SURFACE_SHAPE'])
         except:
             pass
         try:
@@ -961,19 +855,23 @@ class dabam(object):
 
     def _file_root(self):
 
-        if self.is_remote_access():
+        if self.is_remote_access:
             input_option = self.get_input_value("entryNumber")
-            inFileRoot = "dabam-"+"%03d"%(input_option)
+            inFileRoot = "dabam-%03d"%(input_option)
         else:
-            inFileRoot = self.get_input_value("localFileRoot")
+            if self.get_input_value("localFileRoot") is None:
+                input_option = self.get_input_value("entryNumber")
+                inFileRoot = os.path.join(self.server_local,"dabam-%03d"%input_option)
+            else:
+                inFileRoot = self.get_input_value("localFileRoot")
+
 
         return inFileRoot
 
     def _load_file_metadata(self):
-        if self.is_remote_access():
+        if self.is_remote_access:
             # metadata file
             myfileurl = self.server+self.file_metadata()
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",myfileurl)
             u = urlopen(myfileurl)
             ur = u.read()
             ur1 = ur.decode(encoding='UTF-8')
@@ -995,13 +893,11 @@ class dabam(object):
         except:
             skipLines = 0
 
-        if self.is_remote_access():
+        if self.is_remote_access:
             # data
             self.rawdata = numpy.loadtxt(self.server+self.file_data(), skiprows=skipLines )
         else:
-            if file_data is None:
-                file_data = self.file_data()
-                self.set_input_localFileRoot(self._file_root())
+            file_data = self.file_data()
 
             self.rawdata = numpy.loadtxt(file_data, skiprows=skipLines) #, dtype="float64" )
 
@@ -1034,16 +930,17 @@ class dabam(object):
             except:
                 col_ordinates = 1
 
-        a[:,col_abscissas] *= self.metadata['X1_FACTOR']
+
         # a[:,col_ordinates] *= self.metadata['Y%d_FACTOR'%col_ordinates] # TODO: not valid for file type 3
         ncols = a.shape[1]
         if int(self.metadata["FILE_FORMAT"]) <= 2:
+            a[:, col_abscissas] *= self.metadata['X1_FACTOR']
             for i in range(1,ncols):    # X1 Y1 Y2 Y3...
                 a[:,i] = a[:,i]*self.metadata['Y%d_FACTOR'%i]
-        elif int(self.metadata["FILE_FORMAT"]) == 3: #X1 Y1 X2 Y2 etc
+        else: #X1 Y1 X2 Y2 etc
             ngroups = int(ncols / 2)
             icol = -1
-            for i in range(ngroups):    # X1 Y1 Y2 Y3...
+            for i in range(0,ngroups):    # X1 Y1 Y2 Y3...
                 icol += 1
                 a[:,icol] = a[:,icol]*self.metadata['X%d_FACTOR'%(i+1)]
                 icol += 1
@@ -1120,17 +1017,6 @@ class dabam(object):
         # define detrending to apply: >0 polynomial prder, -1=None, -2=Default, -3=elliptical
 
         polDegree = self._get_polDegree()
-
-        # if int(self.get_input_value("setDetrending")) == -2: # this is the default
-        #     polDegree = 1 # linear detrending
-        #     try:
-        #         if (self.metadata['SURFACE_SHAPE']).lower() == "elliptical":
-        #             polDegree = -3     # elliptical detrending
-        #     except:
-        #         pass
-        # else:
-        #     polDegree = int(self.get_input_value("setDetrending"))
-
 
         if polDegree >= 0: # polinomial fit
             coeffs = numpy.polyfit(sy, sz1, polDegree)
@@ -1413,7 +1299,7 @@ class dabam(object):
         # dump data
         outFile = filename_root + ".dat"
 
-        if self.is_remote_access():
+        if self.is_remote_access:
             # data
             myfileurl = self.server+self.file_data()
             try:
@@ -1925,11 +1811,6 @@ def main():
     dm.set_input_outputFileRoot("tmp") # write files by default
     dm._set_from_command_line()   # get arguments of dabam command line
 
-
-    # if dm.get_input_value("runTests"): # if runTests selected
-    #     dm.set_input_outputFileRoot("")      # avoid output files
-    #     test_dabam_names()
-    #     test_dabam_stdev_slopes()
     if dm.get_input_value("summary"):
         print(dabam_summary())
     else:
@@ -1942,17 +1823,4 @@ def main():
 # main call
 #
 if __name__ == '__main__':
-    # import matplotlib.pylab as plt
-    # dm = dabam()
-    # dm.load(entry=16)
-    # dm.plot("heights")
-    # plt.show()
-
     main()
-    # dm = dabam.initialize_from_entry_number(1)
-
-    # dm0 = dabam()
-    # # dm0.set_server_local("/home/manuel/OASYS1.2/dabam/data/dabam-001")
-    # entry = 1
-    # dm0.set_input_localFileRoot("/home/manuel/OASYS1.2/dabam/data/dabam-%03d"%entry)
-    # dm0.load(1)
