@@ -5,7 +5,12 @@ import Shadow
 import numpy
 
 
-def run_shadow(grazing=22.3):
+def run_shadow(incidence=67.7):
+    #
+    # Python script to run shadow3. Created automatically with ShadowTools.make_python_script_from_list().
+    #
+    import Shadow
+    import numpy
 
     # write (1) or not (0) SHADOW files start.xx end.xx star.xx
     iwrite = 0
@@ -35,10 +40,10 @@ def run_shadow(grazing=22.3):
     oe0.HDIV2 = 0.035
     oe0.ISTAR1 = 5676561
     oe0.NCOL = 0
-    oe0.NPOINT = 30000
+    oe0.NPOINT = 300000
     oe0.N_COLOR = 0
-    oe0.PH1 = 1.0
-    oe0.PH2 = 1.01
+    oe0.PH1 = 0.4
+    oe0.PH2 = 0.401
     oe0.POL_DEG = 0.0
     oe0.R_ALADDIN = -5.0
     oe0.R_MAGNET = -5.0
@@ -61,10 +66,10 @@ def run_shadow(grazing=22.3):
     oe1.F_DEFAULT = 0
     oe1.SIMAG = 4.29
     oe1.SSOUR = 1.58
-    oe1.THETA = 90.0 - grazing #67.7
+    oe1.THETA = incidence
     oe1.T_IMAGE = 0.0
-    oe1.T_INCIDENCE = 90.0 - grazing #67.7
-    oe1.T_REFLECTION = 90.0 - grazing #67.7
+    oe1.T_INCIDENCE = incidence
+    oe1.T_REFLECTION = incidence
     oe1.T_SOURCE = 1.58
 
     oe2.ALPHA = 90.0
@@ -118,30 +123,37 @@ def run_shadow(grazing=22.3):
         oe2.write("end.02")
         beam.write("star.02")
 
+    # Shadow.ShadowTools.plotxy(beam, 1, 3, nbins=101, nolost=1, title="Real space")
+    # Shadow.ShadowTools.plotxy(beam,1,4,nbins=101,nolost=1,title="Phase space X")
+    # Shadow.ShadowTools.plotxy(beam,3,6,nbins=101,nolost=1,title="Phase space Z")
+
     return beam, oe1
 
 if __name__ == "__main__":
 
-    from srxraylib.plot.gol import plot
+    from srxraylib.plot.gol import plot, set_qt
     from srxraylib.util.h5_simple_writer import H5SimpleWriter
 
-    Grazing = numpy.linspace(15.3,30.3,46)
-    # Grazing = numpy.linspace(15, 88, 50)
+    set_qt()
+
+    Grazing = numpy.linspace(15, 30.0, 151)
+
     Radius = numpy.zeros_like(Grazing)
     Fwhm = numpy.zeros_like(Grazing)
     Std = numpy.zeros_like(Grazing)
 
     h = H5SimpleWriter.initialize_file("ir_scan.h5")
-
-    for i,grazing in enumerate(Grazing):
-
-        beam,oe1 = run_shadow(grazing=grazing)
+    Incidence = 90.0 - Grazing
+    
+    for i,incidence in enumerate(Incidence):
+        grazing = 90.0 - incidence
+        beam,oe1 = run_shadow(incidence=incidence)
         # Shadow.ShadowTools.plotxy(beam, 1, 3, nbins=101, nolost=1, title="Real space")
 
         tkt = beam.histo1(1,nbins=201,nolost=1) # xrange=[-4000e-6,4000e-6],
-        print(grazing,oe1.RMIRR,1e6*tkt["fwhm"])
+        print(incidence,oe1.RMIRR,1e6*tkt["fwhm"])
         Radius[i] = oe1.RMIRR
-        Fwhm[i] = 1e6*tkt["fwhm_subpixel"]
+        Fwhm[i] = 1e6*tkt["fwhm"]
         Std[i] = 1e6 * beam.get_standard_deviation(1,nolost=1)
 
         h.create_entry("iteration %f" % grazing, nx_default="histogram")
