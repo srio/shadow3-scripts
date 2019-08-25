@@ -5,7 +5,20 @@ import Shadow
 import numpy
 
 
-def run_shadow(grazing=22.3):
+def run_shadow(grazing=22.3,shift=0.0,ymax=-0.2):
+
+    # oe1.SIMAG = 4.29
+    # oe1.SSOUR = 1.58 + shift
+    # oe1.T_INCIDENCE =  90.0 - grazing #67.7
+    # oe1.T_REFLECTION = 90.0 - grazing #67.7
+    # oe1.THETA =        90.0 - grazing #67.7
+
+
+    # y = beam.rays[:, 1]
+    # ibad = numpy.where(y > ymax)
+    # beam.rays[ibad, 6:9] = 0.0
+    # beam.rays[ibad, 15:18] = 0.0
+
     #
     # Python script to run shadow3. Created automatically with ShadowTools.make_python_script_from_list().
     #
@@ -52,7 +65,7 @@ def run_shadow(grazing=22.3):
     oe0.NPOINT = 50000
     oe0.N_COLOR = 0
     oe0.PH1 = 1000.0
-    oe0.PH2 = 1001.0
+    oe0.PH2 = 1000.1
     oe0.POL_DEG = 0.0
     oe0.SIGMAX = 3.9e-05
     oe0.SIGMAY = 0.0
@@ -63,19 +76,35 @@ def run_shadow(grazing=22.3):
     oe0.WYSOU = 0.0
     oe0.WZSOU = 0.0
 
+
+
     oe1.ALPHA = 90.0
     oe1.DUMMY = 100.0
     oe1.FCYL = 1
+    oe1.FHIT_C = 1
     oe1.FMIRR = 1
     oe1.FWRITE = 1
     oe1.F_DEFAULT = 0
+    oe1.RLEN1 = 0.3
+    oe1.RLEN2 = 0.4
+    oe1.RWIDX1 = 0.65
+    oe1.RWIDX2 = 0.65
     oe1.SIMAG = 4.29
     oe1.SSOUR = 1.58
-    oe1.THETA = 90 - grazing
+    oe1.THETA = 67.7
     oe1.T_IMAGE = 0.0
-    oe1.T_INCIDENCE = 90 - grazing
-    oe1.T_REFLECTION = 90 - grazing
+    oe1.T_INCIDENCE = 67.7
+    oe1.T_REFLECTION = 67.7
     oe1.T_SOURCE = 1.58
+
+    oe1.SIMAG = 4.29
+    oe1.SSOUR = 1.58 + shift
+    oe1.T_INCIDENCE =  90.0 - grazing #67.7
+    oe1.T_REFLECTION = 90.0 - grazing #67.7
+    oe1.THETA =        90.0 - grazing #67.7
+
+
+
 
     oe2.ALPHA = 90.0
     oe2.DUMMY = 100.0
@@ -97,6 +126,11 @@ def run_shadow(grazing=22.3):
         oe0.write("start.00")
 
     beam.genSource(oe0)
+
+    y = beam.rays[:, 1]
+    ibad = numpy.where(y < ymax)
+    beam.rays[ibad, 6:9] = 0.0
+    beam.rays[ibad, 15:18] = 0.0
 
     if iwrite:
         oe0.write("end.00")
@@ -136,27 +170,34 @@ def run_shadow(grazing=22.3):
 
 if __name__ == "__main__":
 
-    from srxraylib.plot.gol import plot
+    from srxraylib.plot.gol import plot, set_qt
     from srxraylib.util.h5_simple_writer import H5SimpleWriter
 
-    Grazing = numpy.linspace(5,25,80)
+    set_qt()
+
+    Grazing = numpy.linspace(12,16,80)
     # Grazing = numpy.linspace(15, 88, 50)
     Radius = numpy.zeros_like(Grazing)
     Fwhm = numpy.zeros_like(Grazing)
     Std = numpy.zeros_like(Grazing)
+    Peak = numpy.zeros_like(Grazing)
 
     h = H5SimpleWriter.initialize_file("ir_scan_wiggler.h5")
 
     for i,grazing in enumerate(Grazing):
 
-        beam,oe1 = run_shadow(grazing=grazing)
+        beam,oe1 = run_shadow(grazing=grazing,shift=-0.4,ymax=0.2)
         # Shadow.ShadowTools.plotxy(beam, 1, 3, nbins=101, nolost=1, title="Real space")
 
         tkt = beam.histo1(1,nbins=201,nolost=1) # xrange=[-4000e-6,4000e-6],
-        print(grazing,oe1.RMIRR,1e6*tkt["fwhm"])
         Radius[i] = oe1.RMIRR
-        Fwhm[i] = 1e6*tkt["fwhm_subpixel"]
+        try:
+            print(grazing,oe1.RMIRR,1e6*tkt["fwhm"])
+            Fwhm[i] = 1e6*tkt["fwhm"]
+        except:
+            Fwhm[i] = -1
         Std[i] = 1e6 * beam.get_standard_deviation(1,nolost=1)
+        Peak[i] = tkt["histogram"].max() / ((tkt["bin_center"])[1] - (tkt["bin_center"])[0] )
 
         h.create_entry("iteration %f" % grazing, nx_default="histogram")
         h.add_dataset(1e6*tkt["bin_center"],tkt["histogram"], dataset_name="histogram",entry_name="iteration %f" % grazing,
@@ -164,8 +205,7 @@ if __name__ == "__main__":
 
 
 
-    plot(Radius,Fwhm,xtitle="R/m",ytitle="FWHM/um",show=False)
-    plot(Grazing, Fwhm,Grazing, Std,xtitle="Graz/deg",ytitle="FWHM/um",legend=["fwhm","std"])
+
 
     h.create_entry("scan results", nx_default="Fwhm")
     h.add_dataset(Grazing, Fwhm, dataset_name="Fwhm", entry_name="scan results",
@@ -174,8 +214,15 @@ if __name__ == "__main__":
                   title_x="grazing angle / deg", title_y="fwhm / um")
     h.add_dataset(Radius, Fwhm, dataset_name="Radius", entry_name="scan results",
                   title_x="radius / m", title_y="fwhm / um")
+    h.add_dataset(Grazing, Peak, dataset_name="Peak", entry_name="scan results",
+                  title_x="grazing angle / deg", title_y="peak")
 
     for key in tkt.keys():
         print(key)
     # Shadow.ShadowTools.plotxy(beam,1,4,nbins=101,nolost=1,title="Phase space X")
     # Shadow.ShadowTools.plotxy(beam,3,6,nbins=101,nolost=1,title="Phase space Z")
+
+
+    plot(Radius,Fwhm,xtitle="R/m",ytitle="FWHM/um",show=False)
+    plot(Grazing, Fwhm,Grazing, Std,xtitle="Graz/deg",ytitle="FWHM/um",legend=["fwhm","std"],show=False)
+    plot(Grazing, Peak, xtitle="Graz/deg", ytitle="peak")
