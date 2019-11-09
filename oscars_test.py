@@ -286,37 +286,40 @@ def undulator_radiation_srio():
 
     # Clear any existing fields (just good habit in notebook style) and add an undulator field
     osr.clear_bfields()
-    osr.add_bfield_undulator(bfield=[0, 1, 0], period=[0, 0, 0.049], nperiods=21)
+    osr.add_bfield_undulator(bfield=[0, 0.69, 0], period=[0, 0, 0.038], nperiods=55)
 
-    # Just to check the field that we added seems visually correct
-    plot_bfield(osr)
+    # # Just to check the field that we added seems visually correct
+    # plot_bfield(osr)
 
     # Setup beam similar to NSLSII
     osr.clear_particle_beams()
-    osr.set_particle_beam(x0=[0, 0, -1], energy_GeV=3, current=0.500)
+    osr.set_particle_beam(x0=[0, 0, -2], energy_GeV=2.0, current=0.500)
 
     # Set the start and stop times for the calculation
-    osr.set_ctstartstop(0, 2)
+    osr.set_ctstartstop(0, 4)
 
-    # Run the particle trajectory calculation
-    trajectory = osr.calculate_trajectory()
+    # # Run the particle trajectory calculation
+    # trajectory = osr.calculate_trajectory()
 
-    # Plot the trajectory position and velocity
-    plot_trajectory_position(trajectory)
-    plot_trajectory_velocity(trajectory)
+    # # Plot the trajectory position and velocity
+    # plot_trajectory_position(trajectory)
+    # plot_trajectory_velocity(trajectory)
 
-    # Calculate spectrum zoom
-    spectrum = osr.calculate_spectrum(obs=[0, 0, 30], energy_range_eV=[145, 160], npoints=200)
-    # print(">>>",spectrum)
-    plot_spectrum(spectrum)
+    # # Calculate spectrum zoom
+    # spectrum = osr.calculate_spectrum(obs=[0, 0, 10], energy_range_eV=[100, 400], npoints=2000)
+    # # print(">>>",spectrum)
+    # plot_spectrum(spectrum)
 
+    import time
+    t0 = time.time()
     flux = osr.calculate_flux_rectangle(
         plane='XY',
-        energy_eV=153,
-        width=[0.01, 0.01],
+        energy_eV=249+6,
+        width=[0.0025, 0.0025],
         npoints=[101, 101],
-        translation=[0, 0, 30]
+        translation=[0, 0, 10]
     )
+    print(">>>>",time.time()-t0)
 
     plot_flux(flux)
     print(">>>", flux,type(flux))
