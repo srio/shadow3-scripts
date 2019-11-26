@@ -325,6 +325,52 @@ def undulator_radiation_srio():
     print(">>>", flux,type(flux))
 
     print(numpy.array(flux).shape)
+
+def undulator_radiation_howard():
+
+    osr = oscars.sr.sr(nthreads=8, gpu=1)
+    osr.clear_bfields()
+
+    K = 0.6
+    import scipy.constants as codata
+    B = K * 2 * numpy.pi * codata.m_e * codata.c / (codata.e * 0.0288 )
+    osr.add_bfield_undulator(bfield=[0, B, 0], period=[0, 0, 0.0288], nperiods=138)
+
+    osr.clear_particle_beams()
+    osr.set_particle_beam(x0=[0, 0, -138*0.0288], energy_GeV=2.0, current=0.500)
+
+    # Set the start and stop times for the calculation
+    osr.set_ctstartstop(0, 4)
+
+    # # Run the particle trajectory calculation
+    # trajectory = osr.calculate_trajectory()
+
+    # # Plot the trajectory position and velocity
+    # plot_trajectory_position(trajectory)
+    # plot_trajectory_velocity(trajectory)
+
+    # # Calculate spectrum zoom
+    # spectrum = osr.calculate_spectrum(obs=[0, 0, 10], energy_range_eV=[100, 400], npoints=2000)
+    # # print(">>>",spectrum)
+    # plot_spectrum(spectrum)
+
+    import time
+    t0 = time.time()
+    flux = osr.calculate_flux_rectangle(
+        plane='XY',
+        energy_eV=830, #1117.74,
+        width=[0.006, 0.006],
+        npoints=[251, 251],
+        translation=[0, 0, 13]
+    )
+    print(">>>>", time.time() - t0)
+
+    plot_flux(flux)
+    print(">>>", flux, type(flux))
+
+    print(numpy.array(flux).shape)
+
+
 if __name__ == "__main__":
 
     set_qt()
@@ -337,4 +383,4 @@ if __name__ == "__main__":
     # example_042_undulator_power_density()
     # example_001_dipole_trajectory()
 
-    undulator_radiation_srio()
+    undulator_radiation_howard()
