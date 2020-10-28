@@ -47,11 +47,6 @@ def get_eigenvalues_array(beta,index_max):
 
 if __name__ == "__main__":
 
-    # import matplotlib.pyplot as plt
-    # plt.rc('text', usetex=True)
-    # plt.rc('font', family='serif', size=25)
-
-
     modes, lambdai, occupation_0p1, cumulated_occupation_0p1 = get_eigenvalues_array(0.1,99)
     modes, lambdai, occupation_1,   cumulated_occupation_1   = get_eigenvalues_array(1.0,99)
     modes, lambdai, occupation_10,  cumulated_occupation_10  = get_eigenvalues_array(10.0,99)
@@ -62,19 +57,14 @@ if __name__ == "__main__":
         legend=["beta=0.1","beta=1.0","beta=10.0"],
         xrange=[0,25],show=True,figsize=(10,7.5),marker=['o','o','o'])
 
-    # outfile = "spectrum_gaussianshell.eps"
-    # plt.savefig(outfile)
-    # print("File written to disk: %s"%outfile)
 
-    # plt.show()
-
-    # plot(modes, cumulated_occupation_0p1,
-    #     modes, cumulated_occupation_1,
-    #     modes, cumulated_occupation_10,xtitle="mode index",ytitle="cumulated occupation",
-    #     legend=["beta=0.1, CF=%f"%cumulated_occupation_0p1[0],
-    #             "beta=1.0, CF=%f"%cumulated_occupation_1[0],
-    #             "beta=10.0, CF=%f"%cumulated_occupation_10[0]],
-    #     xrange=[0,25],show=False)
+    plot(modes, cumulated_occupation_0p1,
+        modes, cumulated_occupation_1,
+        modes, cumulated_occupation_10,xtitle="mode index",ytitle="cumulated occupation",
+        legend=["beta=0.1, CF=%f"%cumulated_occupation_0p1[0],
+                "beta=1.0, CF=%f"%cumulated_occupation_1[0],
+                "beta=10.0, CF=%f"%cumulated_occupation_10[0]],
+        xrange=[0,25],show=True)
 
 
     # import matplotlib.pylab as plt
