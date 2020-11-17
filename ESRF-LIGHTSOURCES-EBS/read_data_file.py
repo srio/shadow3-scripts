@@ -37,7 +37,41 @@ print("%5s  %10s  %15s %15s %15s" % ("====", "====", "====", "====", "===="))
 for i in range(Bmax.size):
     print("%5d  %10s  %15.3f %15.3f %15.3f" % (straight_section[i], id_name[i], id_minimum_gap_mm[i], Bmax[i], Kmax[i]))
 
+out_dict = {}
+out_dict["straight_section"] = straight_section.tolist()
+out_dict["id_name"] = id_name.tolist()
+out_dict["id_minimum_gap_mm"] = id_minimum_gap_mm.tolist()
+out_dict["Bmax"] = Bmax.tolist()
+out_dict["Kmax"] = Kmax.tolist()
+out_dict["straight_section"] = straight_section.tolist()
+out_dict["id_period"] = id_period.tolist()
+out_dict["id_period_mm"] = id_period_mm.tolist()
+out_dict["id_length"] = id_length.tolist()
+out_dict["a0"] = a0.tolist()
+out_dict["a1"] = a1.tolist()
+out_dict["a2"] = a2.tolist()
+out_dict["a3"] = a3.tolist()
+out_dict["a4"] = a4.tolist()
+out_dict["a5"] = a5.tolist()
+out_dict["a6"] = a6.tolist()
 
+import json
+
+
+
+json_object = json.dumps(out_dict, indent = 4)
+# print(json_object)
+
+f = open('ebs_ids.json', 'w')
+f.write(json_object)
+f.close()
+print("File written to disk: ebs_ids.json")
+
+
+with open('ebs_ids.json') as json_file:
+    data = json.load(json_file)
+
+print(data)
 
 
 
