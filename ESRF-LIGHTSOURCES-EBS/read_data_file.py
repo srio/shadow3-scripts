@@ -1,25 +1,39 @@
 import numpy
 import scipy.constants as codata
 
-filename = 'IDstatus_2020-10-23.dat'
 
-a = numpy.loadtxt(filename, skiprows=1, dtype=str)
+file_type = 1
+tofloat = lambda s: numpy.array(['0.0' if v == '' else v for v in s]).astype(float)
 
-print(a.shape)
+if file_type == 0:
+    filename = 'IDstatus_2020-10-23.dat'
+    a = numpy.loadtxt(filename, skiprows=1, dtype=str, )
+    ishift=0
+else:
+    filename = 'jsrund.csv'
+    ishift=1
+    a = numpy.genfromtxt(filename, dtype=str, delimiter=',', skip_header=3, skip_footer=1, converters=None, \
+                         missing_values={0:"11.000"}, filling_values={0:"XXX"}, usecols=None, names=None, excludelist=None, \
+                         deletechars=" !#$%&'()*+, -./:;<=>?@[\]^{|}~", replace_space='', autostrip=True, \
+                         case_sensitive=True, defaultfmt='f%i', unpack=None, usemask=False, loose=True, \
+                         invalid_raise=True, max_rows=None, encoding='bytes')
 
 straight_section = a[:,0].astype(int)
 id_name = a[:,1]
-id_period = 1e-3 * a[:,2].astype(float)
-id_period_mm = a[:,2].astype(float)
-id_length = 1e-3 * a[:,3].astype(float)
-id_minimum_gap_mm = a[:,4].astype(float)
-a0 = a[:,5].astype(float)
-a1 = a[:,6].astype(float)
-a2 = a[:,7].astype(float)
-a3 = a[:,8].astype(float)
-a4 = a[:,9].astype(float)
-a5 = a[:,10].astype(float)
-a6 = a[:,11].astype(float)
+id_period = 1e-3 * a[:,2+ishift].astype(float)
+id_period_mm = a[:,2+ishift].astype(float)
+id_length = 1e-3 * a[:,3+ishift].astype(float)
+
+
+id_minimum_gap_mm = tofloat(a[:,4+ishift])
+
+a0 = tofloat(a[:,5+ishift])
+a1 = tofloat(a[:,6+ishift])
+a2 = tofloat(a[:,7+ishift])
+a3 = tofloat(a[:,8+ishift])
+a4 = tofloat(a[:,9+ishift])
+a5 = tofloat(a[:,10+ishift])
+a6 = tofloat(a[:,11+ishift])
 
 
 Bmax = numpy.zeros_like(a0)
@@ -60,7 +74,6 @@ import json
 
 
 json_object = json.dumps(out_dict, indent = 4)
-# print(json_object)
 
 f = open('ebs_ids.json', 'w')
 f.write(json_object)
