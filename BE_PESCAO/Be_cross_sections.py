@@ -15,12 +15,68 @@ XRL_MU_E = numpy.zeros(l)
 for i in range(l):
     XRL_MU[i] = rho * xraylib.CS_Total(xraylib.SymbolToAtomicNumber("Be"), muoverrhos[i,0])
     XRL_MU_E[i] = rho * xraylib.CS_Energy(xraylib.SymbolToAtomicNumber("Be"), muoverrhos[i,0])
-    print("     >>",muoverrhos[i,0],rho*muoverrhos[i,1], XRL_MU[i], XRL_MU_E[i], XRL_MU_E[i] / XRL_MU[i])
+    # print("     >>",muoverrhos[i,0],rho*muoverrhos[i,1], XRL_MU[i], XRL_MU_E[i], XRL_MU_E[i] / XRL_MU[i])
 
 from srxraylib.plot.gol import plot
-plot(muoverrhos[:,0], rho*muoverrhos[:,1],
-     muoverrhos[:,0], XRL_MU,
-     muoverrhos[:, 0], XRL_MU_E,
-     xlog=1,ylog=1,title="Be",xrange=[1,1e3],xtitle="Photon energy [keV]",ytitle="mu [cm-1]",
-     legend=["mu xro","mu xraylib","energy loss mu"])
+# plot(muoverrhos[:,0], rho*muoverrhos[:,1],
+#      muoverrhos[:,0], XRL_MU,
+#      muoverrhos[:, 0], XRL_MU_E,
+#      xlog=1,ylog=1,title="Be",xrange=[1,1e3],xtitle="Photon energy [keV]",ytitle="mu [cm-1]",
+#      legend=["mu xro","mu xraylib","energy loss mu"])
+
+
+
+
+
+nist = [
+    [1.00000E-03, 6.041E+02, 6.035E+02],
+    [1.50000E-03, 1.797E+02, 1.791E+02],
+    [2.00000E-03, 7.469E+01, 7.422E+01],
+    [3.00000E-03, 2.127E+01, 2.090E+01],
+    [4.00000E-03, 8.685E+00, 8.367E+00],
+    [5.00000E-03, 4.369E+00, 4.081E+00],
+    [6.00000E-03, 2.527E+00, 2.260E+00],
+    [8.00000E-03, 1.124E+00, 8.839E-01],
+    [1.00000E-02, 6.466E-01, 4.255E-01],
+    [1.50000E-02, 3.070E-01, 1.143E-01],
+    [2.00000E-02, 2.251E-01, 4.780E-02],
+    [3.00000E-02, 1.792E-01, 1.898E-02],
+    [4.00000E-02, 1.640E-01, 1.438E-02],
+    [5.00000E-02, 1.554E-01, 1.401E-02],
+    [6.00000E-02, 1.493E-01, 1.468E-02],
+    [8.00000E-02, 1.401E-01, 1.658E-02],
+    [1.00000E-01, 1.328E-01, 1.836E-02],
+    [1.50000E-01, 1.190E-01, 2.157E-02],
+    [2.00000E-01, 1.089E-01, 2.353E-02],
+    [3.00000E-01, 9.463E-02, 2.548E-02],
+    [4.00000E-01, 8.471E-02, 2.620E-02],
+    [5.00000E-01, 7.739E-02, 2.639E-02],
+    [6.00000E-01, 7.155E-02, 2.627E-02],
+    [8.00000E-01, 6.286E-02, 2.565E-02],
+    [1.00000E+00, 5.652E-02, 2.483E-02],
+    [1.25000E+00, 5.054E-02, 2.373E-02],
+    [1.50000E+00, 4.597E-02, 2.268E-02],
+    [2.00000E+00, 3.938E-02, 2.083E-02],
+    [3.00000E+00, 3.138E-02, 1.806E-02],
+    [4.00000E+00, 2.664E-02, 1.617E-02],
+    [5.00000E+00, 2.347E-02, 1.479E-02],
+    [6.00000E+00, 2.121E-02, 1.377E-02],
+    [8.00000E+00, 1.819E-02, 1.233E-02],
+    [1.00000E+01, 1.627E-02, 1.138E-02],
+    [1.50000E+01, 1.361E-02, 1.001E-02],
+    [2.00000E+01, 1.227E-02, 9.294E-03]]
+nist = numpy.array(nist)
+print(">>", nist.shape)
+
+plot(nist[:,0], nist[:,1],
+     nist[:,0], nist[:,2],
+     xlog=1,ylog=1,title="Be",xtitle="Photon energy [keV]",ytitle="mu [cm2/g]",
+     legend=["mu nist", "mu_en nist"])
+
+plot(muoverrhos[:,0], XRL_MU/rho,
+     muoverrhos[:, 0], XRL_MU_E/rho,
+     nist[:,0]*1e+3, nist[:,1],
+     nist[:,0]*1e+3, nist[:,2],
+     xlog=1,ylog=1,title="Be",xrange=[1,1e3],xtitle="Photon energy [keV]",ytitle="mu [cm2/g]",
+     legend=["mu xraylib","mu_en xraylib", "mu nist", "mu_en nist"])
 
