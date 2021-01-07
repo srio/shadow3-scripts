@@ -30,11 +30,17 @@ def get_wavefront_intensity_I0(wf):
     I = wf.get_intensity()
     return I[I.size // 2]
 
+def get_wavefront_intensity_ITOTAL(wf):
+    I = wf.get_intensity()
+    x = wf.get_abscissas()
+    return I.sum() * (x[1] - x[0])
+
 def run_wofry_v(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     tkt = {}
     tkt["DISTANCE"] = []
     tkt["FWHM"] = []
     tkt["I0"] = []
+    tkt["ITOTAL"] = []
 
 
     ##########  SOURCE ##########
@@ -53,6 +59,7 @@ def run_wofry_v(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
 
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(0.0)
     tkt["output_wavefront"] = output_wavefront
 
@@ -102,6 +109,7 @@ def run_wofry_v(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
 
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(35)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 1: return tkt
@@ -126,6 +134,7 @@ def run_wofry_v(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     if plot_from <= 2: plot(output_wavefront.get_abscissas(), output_wavefront.get_intensity(), title='OPTICAL ELEMENT NR 2')
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(35.01)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 2: return tkt
@@ -167,6 +176,7 @@ def run_wofry_v(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     if plot_from <= 3: plot(output_wavefront.get_abscissas(), output_wavefront.get_intensity(), title='OPTICAL ELEMENT NR 3')
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(55)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 3: return tkt
@@ -191,6 +201,7 @@ def run_wofry_v(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
 
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(55.01)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 4: return tkt
@@ -232,6 +243,7 @@ def run_wofry_v(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     if plot_from <= 5: plot(output_wavefront.get_abscissas(), output_wavefront.get_intensity(), title='OPTICAL ELEMENT NR 5')
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(164)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 5: return tkt
@@ -255,6 +267,7 @@ def run_wofry_v(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     if plot_from <= 6: plot(output_wavefront.get_abscissas(), output_wavefront.get_intensity(), title='OPTICAL ELEMENT NR 6')
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(164.01)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 6: return tkt
@@ -296,6 +309,7 @@ def run_wofry_v(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
 
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(164.0 + q7)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 7: return tkt
@@ -307,6 +321,7 @@ def run_wofry_h(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     tkt["DISTANCE"] = []
     tkt["FWHM"] = []
     tkt["I0"] = []
+    tkt["ITOTAL"] = []
     ##########  SOURCE ##########
 
     #
@@ -322,6 +337,7 @@ def run_wofry_h(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
 
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(0.0)
     tkt["output_wavefront"] = output_wavefront
 
@@ -366,6 +382,7 @@ def run_wofry_h(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
 
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(35)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 1: return tkt
@@ -386,6 +403,7 @@ def run_wofry_h(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     if plot_from <= 2: plot(output_wavefront.get_abscissas(), output_wavefront.get_intensity(), title='OPTICAL ELEMENT NR 2')
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(35.01)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 2: return tkt
@@ -429,6 +447,7 @@ def run_wofry_h(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     if plot_from <= 3: plot(output_wavefront.get_abscissas(), output_wavefront.get_intensity(), title='OPTICAL ELEMENT NR 3')
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(55)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 3: return tkt
@@ -450,6 +469,7 @@ def run_wofry_h(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
 
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(55.01)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 4: return tkt
@@ -492,6 +512,7 @@ def run_wofry_h(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     if plot_from <= 5: plot(output_wavefront.get_abscissas(), output_wavefront.get_intensity(), title='OPTICAL ELEMENT NR 5')
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(164)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 5: return tkt
@@ -512,6 +533,7 @@ def run_wofry_h(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
     if plot_from <= 6: plot(output_wavefront.get_abscissas(), output_wavefront.get_intensity(), title='OPTICAL ELEMENT NR 6')
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(164.01)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 6: return tkt
@@ -554,6 +576,7 @@ def run_wofry_h(plot_from=0,run_up_to_element=100,q7=38.000000,mode_x=0):
 
     tkt["FWHM"].append(get_wavefront_intensity_fwhm(output_wavefront))
     tkt["I0"].append(get_wavefront_intensity_I0(output_wavefront))
+    tkt["ITOTAL"].append(get_wavefront_intensity_ITOTAL(output_wavefront))
     tkt["DISTANCE"].append(164.0 + q7)
     tkt["output_wavefront"] = output_wavefront
     if run_up_to_element == 7: return tkt
@@ -567,6 +590,7 @@ def run_wofry_multimode(run_up_to_mode=10,nelements=7,q7=38.000000,horizontal_or
 
     FWHM     = []
     I0       = []
+    ITOTAL   = []
     DISTANCE = []
 
     for ielement in range(nelements+1):
@@ -585,11 +609,12 @@ def run_wofry_multimode(run_up_to_mode=10,nelements=7,q7=38.000000,horizontal_or
 
         DISTANCE.append( tkti["DISTANCE"][-1] )
         I0.append( intensity[intensity.size // 2] )
+        ITOTAL.append(intensity.sum() * (abscissas[1] - abscissas[0]))
         fwhm, _, _ = get_fwhm(intensity, abscissas)
         FWHM.append( fwhm )
         # plot(abscissas, intensity, title="element %d  mode %d" % (ielement, imode))
 
-    return DISTANCE, FWHM, I0
+    return DISTANCE, FWHM, I0, ITOTAL
 
 if __name__ == "__main__":
 
@@ -621,14 +646,17 @@ if __name__ == "__main__":
         print(tkt["DISTANCE"])
         print(tkt["FWHM"])
         print(tkt["I0"])
+        print(tkt["ITOTAL"])
 
         # remove last elemet
         tkt["FWHM"].pop()
         tkt["I0"].pop()
+        tkt["ITOTAL"].pop()
         tkt["DISTANCE"].pop()
 
         FWHM = tkt["FWHM"]
         I0 = tkt["I0"]
+        ITOTAL = tkt["ITOTAL"]
         DISTANCE = tkt["DISTANCE"]
 
         for i in range(pscan.size):
@@ -640,9 +668,10 @@ if __name__ == "__main__":
             DISTANCE.append(tkt["DISTANCE"][-1])
             FWHM.append(tkt["FWHM"][-1])
             I0.append(tkt["I0"][-1])
+            ITOTAL.append(tkt["ITOTAL"][-1])
     elif run_mode == 1: # many modes
 
-        DISTANCE, FWHM, I0 = run_wofry_multimode(run_up_to_mode=run_up_to_mode,
+        DISTANCE, FWHM, I0, ITOTAL = run_wofry_multimode(run_up_to_mode=run_up_to_mode,
                                                  nelements=run_up_to_element,
                                                  q7=q7,
                                                  horizontal_or_vertical=horizontal_or_vertical)
@@ -653,11 +682,12 @@ if __name__ == "__main__":
         DISTANCE.pop()
         FWHM.pop()
         I0.pop()
+        ITOTAL.pop()
 
         for i in range(pscan.size):
             q7i = pscan[i] - 164
             print(">>>>>>>  screen distance: %g (%d of %d)" % (q7i,i,pscan.size))
-            DISTANCEi, FWHMi, I0i = run_wofry_multimode(run_up_to_mode=run_up_to_mode,
+            DISTANCEi, FWHMi, I0i, ITOTALi = run_wofry_multimode(run_up_to_mode=run_up_to_mode,
                                                         nelements=run_up_to_element,
                                                         q7=q7i,
                                                         horizontal_or_vertical=horizontal_or_vertical)
@@ -665,13 +695,15 @@ if __name__ == "__main__":
             DISTANCE.append(DISTANCEi[-1])
             FWHM.append(FWHMi[-1])
             I0.append(I0i[-1])
+            ITOTAL.append(ITOTALi[-1])
 
     f = open("tmp.dat",'w')
     for i in range(len(DISTANCE)):
-        f.write("%g %g %g\n" % (DISTANCE[i], FWHM[i], I0[i]))
+        f.write("%g %g %g %g\n" % (DISTANCE[i], FWHM[i], I0[i], ITOTAL[i]))
     f.close()
     print("File written to disk: tmp.dat")
 
 
     plot(DISTANCE, I0, title=title, ytitle="Peak intensity [a.u.]", xtitle="Distance from source [m]", figsize=(15,4), show=0)
+    plot(DISTANCE, ITOTAL, title=title, ytitle="Beam intensity [a.u.]", xtitle="Distance from source [m]", figsize=(15, 4), show=0)
     plot(DISTANCE, 1e6*numpy.array(FWHM), title=title, ytitle="FWHM [um]", xtitle="Distance from source [m]", figsize=(15,4), show=1)

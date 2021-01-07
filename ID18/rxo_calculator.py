@@ -1,9 +1,16 @@
 import numpy
 
+# https://www.rxoptics.de/design-parameters/
+# view-source:https://www.rxoptics.de/design-parameters/
+# https://www.rxoptics.de/wp-content/themes/rxoptics/js/crlcalc.js
 
-def compute(e=1.0, desf=1000.0, dist=1000.0, R=0.05,
+def compute(e=10.0,
+            desf=1000.0, #focal length (presf=0) in mm or image distance (presf=1) in mm
+            dist=1000.0, #distance source-lens in mm
+            R=0.05,
             w=150.0, h=150.0, F=1000.0, d=1000.0, th=30.0,
-            presf=0, MATERIAL="Be"):
+            presf=0, #0=focal length, 1=image distance,
+            MATERIAL="Be", plot_cross_sections=False):
 
 
 	# var tdelta,mu,lambda,rho,muoverrhos;
@@ -25,13 +32,33 @@ def compute(e=1.0, desf=1000.0, dist=1000.0, R=0.05,
     l= muoverrhos.shape[0]
 
 
+    import xraylib
+    # xrl_mu = rho * xraylib.CS_Energy(xraylib.SymbolToAtomicNumber(MATERIAL), e)
+
+
+    if plot_cross_sections:
+        XRL_MU = numpy.zeros(l)
+        XRL_MU_E = numpy.zeros(l)
+
+        for i in range(l):
+            XRL_MU[i] = rho * xraylib.CS_Total(xraylib.SymbolToAtomicNumber(MATERIAL), muoverrhos[i,0])
+            XRL_MU_E[i] = rho * xraylib.CS_Energy(xraylib.SymbolToAtomicNumber(MATERIAL), muoverrhos[i,0])
+            # print("     >>",muoverrhos[i,0],rho*muoverrhos[i,1], XRL_MU[i], XRL_MU_E[i], XRL_MU_E[i] / XRL_MU[i])
+
+        from srxraylib.plot.gol import plot
+        plot(muoverrhos[:,0], rho*muoverrhos[:,1],
+             muoverrhos[:,0], XRL_MU,
+             muoverrhos[:, 0], XRL_MU_E,
+             xlog=1,ylog=1,title=MATERIAL,xrange=[1,1e3],xtitle="Photon energy [keV]",ytitle="mu [cm-1]",
+             legend=["mu xro","mu xraylib","energy loss mu"])
+
     print(">>> len l", l)
     for i in range(l):
-        if muoverrhos[i,0] <= e:
+        if muoverrhos[i, 0] <= e:
             if i == 0:
-                mu = rho * muoverrhos[0,1]
-            elif i == (l-1):
-                mu = rho * muoverrhos[l-1,1]
+                mu = rho * muoverrhos[0, 1]
+            elif i == (l - 1):
+                mu = rho * muoverrhos[l - 1, 1]
             else:
                 # mu = rho * (muoverrhos[i,1] * \
                 #             (e - muoverrhos[i-1,0]) / (muoverrhos[i, 0] - muoverrhos[i-1, 0]) - \
@@ -41,36 +68,19 @@ def compute(e=1.0, desf=1000.0, dist=1000.0, R=0.05,
                 # mu=rho*(muoverrhos[i][1]*(e-muoverrhos[i-1][0])/(muoverrhos[i][0]-muoverrhos[i-1][0])-muoverrhos[i-1][1]*(e-muoverrhos[i][0])/(muoverrhos[i][0]-muoverrhos[i-1][0]));
 
                 mu = rho * (
-                        muoverrhos[i,   1] * (e - muoverrhos[i-1,0]) / (muoverrhos[i, 0] - muoverrhos[i-1, 0]) - \
-                        muoverrhos[i-1, 1] * (e - muoverrhos[i  ,0]) / (muoverrhos[i, 0] - muoverrhos[i-1, 0])
-                        )
-
-    print(">>> mu, delta: ", mu, tdelta)
+                        muoverrhos[i, 1] * (e - muoverrhos[i - 1, 0]) / (muoverrhos[i, 0] - muoverrhos[i - 1, 0]) - \
+                        muoverrhos[i - 1, 1] * (e - muoverrhos[i, 0]) / (muoverrhos[i, 0] - muoverrhos[i - 1, 0])
+                )
 
 
-    import xraylib
-    # xrl_mu = rho * xraylib.CS_Energy(xraylib.SymbolToAtomicNumber(MATERIAL), e)
+
 
     xrl_mu = rho * xraylib.CS_Total(xraylib.SymbolToAtomicNumber(MATERIAL), e)
-    xrl_delta = 1.0 - (xraylib.Refractive_Index("Be", 12.4, 1.0)).real
-
-    print(">>>>>>>>xrl mu, delta: ",xrl_mu, xrl_delta)
-
-    XRL_MU = numpy.zeros(l)
-    XRL_MU_E = numpy.zeros(l)
-
-    for i in range(l):
-        XRL_MU[i] = rho * xraylib.CS_Total(xraylib.SymbolToAtomicNumber(MATERIAL), muoverrhos[i,0])
-        XRL_MU_E[i] = rho * xraylib.CS_Energy(xraylib.SymbolToAtomicNumber(MATERIAL), muoverrhos[i,0])
-        print("     >>",muoverrhos[i,0],rho*muoverrhos[i,1], XRL_MU[i], XRL_MU_E[i], XRL_MU_E[i] / XRL_MU[i])
-
-    from srxraylib.plot.gol import plot
-    plot(muoverrhos[:,0], rho*muoverrhos[:,1],
-         muoverrhos[:,0], XRL_MU,
-         muoverrhos[:, 0], XRL_MU_E,
-         xlog=1,ylog=1,title=MATERIAL,xrange=[1,1e3],xtitle="Photon energy [keV]",ytitle="mu [cm-1]",
-         legend=["mu xro","mu xraylib","energy loss mu"])
-
+    xrl_delta = 1.0 - (xraylib.Refractive_Index("Be", e, rho)).real
+    print("e: %g, lambda: %g" % (e,lambda1))
+    print(">>>", 5.4e-6 * lambda1**2 * rho * 4/9.012)
+    print(">>>>>>>rxo_mu: %g , xrl_mu: %g" % (mu,  xrl_mu))
+    print(">>>>>>>rxo_delta: %g , xrl_delta: %g" % (tdelta/2, xrl_delta))  #<<<<<<<<<<< factor 2!!!!
 
 
     # //compute desired focal length and real number of lenses
@@ -81,15 +91,18 @@ def compute(e=1.0, desf=1000.0, dist=1000.0, R=0.05,
     else:
         f=dist*desf/(dist+desf)
 
-    N = numpy.sqrt(R/(tdelta*f))*numpy.arcsin(numpy.sqrt(R*F/tdelta)/f)
+    N = R / (tdelta * F)
+    # N = numpy.sqrt(R/(tdelta*F)) * numpy.arcsin( numpy.sqrt(R*F/tdelta) / f)#??????????????????
 
-    print(">>>>N: ", N)
+    print(">>>>f: %f" % (f) )
 
     if numpy.isnan(N):
         raise Exception("The focus lies within the CRL.")
 
     # //compute integer number of lenses and true focal length
-    N=numpy.floor(N);
+    N=numpy.floor(N)
+    print("N: %f" % (N) )
+
     exfa = numpy.sqrt(R*F/tdelta) * 1/(numpy.sin(N    *numpy.sqrt(tdelta*f/R))) # //in mm
     exfb = numpy.sqrt(R*F/tdelta) * 1/(numpy.sin((N+1)*numpy.sqrt(tdelta*f/R))) # //in mm
 
@@ -102,6 +115,8 @@ def compute(e=1.0, desf=1000.0, dist=1000.0, R=0.05,
 
     if exf >= dist:
         raise Exception("The source lies within the focal distance.")
+
+    print("exf: ", exf)
 
         # for N+1 <= N_min
     # 	exf=exfb;
