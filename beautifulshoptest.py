@@ -1,7 +1,7 @@
 # https://scrapingant.com/blog/scrape-dynamic-website-with-python
 
 
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 # from scrapingant_client import ScrapingAntClient
 #
 # # Define URL with a dynamic web content
@@ -44,19 +44,44 @@ from bs4 import BeautifulSoup
 
 
 
-import http.client
+# import http.client
+#
+# conn = http.client.HTTPSConnection("api.scrapingant.com")
+#
+# headers = {
+#     'x-api-key': "c9cfbe07764442da98ecf72d6a734b55"
+# }
+#
+# # conn.request("GET", "/v1/general?url=https%3A%2F%2Fexample.com", headers=headers)
+# conn.request("GET", "/v1/general?url=https%3A%2F%2Fwww.esrf.fr%2FAccelerators%2FStatus", headers=headers)
+#
+#
+# res = conn.getresponse()
+# data = res.read()
+#
+# print(data.decode("utf-8"))
 
-conn = http.client.HTTPSConnection("api.scrapingant.com")
 
-headers = {
-    'x-api-key': "c9cfbe07764442da98ecf72d6a734b55"
-}
+import urllib.request
+import zipfile
 
-# conn.request("GET", "/v1/general?url=https%3A%2F%2Fexample.com", headers=headers)
-conn.request("GET", "/v1/general?url=https%3A%2F%2Fwww.esrf.fr%2FAccelerators%2FStatus", headers=headers)
+url = 'http://www.gutenberg.lib.md.us/4/8/8/2/48824/48824-8.zip'
+url = 'https://www.esrf.fr/esrf_status/gifs/ctrm_info.zip'
+filehandle, _ = urllib.request.urlretrieve(url)
+zip_file_object = zipfile.ZipFile(filehandle, 'r')
+first_file = zip_file_object.namelist()[0]
+file = zip_file_object.open(first_file)
+content = file.read()
 
 
-res = conn.getresponse()
-data = res.read()
+# print(content)
+S2 = ["current","emith","emitv"]
 
-print(data.decode("utf-8"))
+for s2 in S2:
+    s1 = content
+    s2 = bytes(s2,encoding='utf-8')
+    a0 = 2 + s1.index(s2) + len(s2)
+    a1 = a0 + 6
+    tmp = float(s1[a0:a1])
+
+    print(s2,tmp)
