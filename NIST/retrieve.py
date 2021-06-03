@@ -32,30 +32,32 @@ for Z in range(1,93):
     txt = resp.text
     # print(resp.text)
 
-    f.write("\n#S %d %s\n#N 3\n#L  energy [eV]  mu/rho [cm2/g]  mu_energy/rho[cm2/g]\n" % (Z, xraylib.AtomicNumberToSymbol(Z)))
+    f.write("\n#S  %d %s\n#N 3\n#L  energy [eV]  mu/rho [cm2/g]  mu_energy/rho[cm2/g]\n" % (Z, xraylib.AtomicNumberToSymbol(Z)))
 
     txt_data = txt[txt.index("<PRE>"):txt.index("</PRE>")]
-    # print(txt_data)
+    # ff = open("tmp.txt","w")
+    # ff.write(txt_data)
+    # ff.close()
 
     txt_lines = txt_data.split("\n")[6:-1]
+
     for i, line in enumerate(txt_lines):
-        print(line)
-        items = line.split()
-        try:
-            energy = float(items[0])
-            mu = float(items[1])
-            mu_en = float(items[2])
-        except:
+        if len(line) > 1:
+            items = line.split()
             try:
-                energy = float(items[1]) + 1e-9 # add 1meV to avoid suplicating values
-                mu = float(items[2])
-                mu_en = float(items[3])
+                energy = float(items[0])
+                mu = float(items[1])
+                mu_en = float(items[2])
             except:
-                print(">>>>>Failed with  Z=%d, line: %s" % (Z, line))
-                print(txt_lines)
-                raise("Failed with  Z=%d, line: %s" % (Z, line))
-                f.close()
-        f.write("%g  %g  %g \n" % (energy*1e6, mu, mu_en))
+                try:
+                    energy = float(items[1]) + 1e-9 # add 1meV to avoid suplicating values
+                    mu = float(items[2])
+                    mu_en = float(items[3])
+                except:
+                    print("Failed with  Z=%d, line number %d line: %s len: %d" % (Z, i, line, len(line)))
+                    raise("Failed with  Z=%d, line number %d line: %s len: %d" % (Z, i, line, len(line)))
+                    f.close()
+            f.write("%g  %g  %g \n" % (energy*1e6, mu, mu_en))
 
 f.close()
 
