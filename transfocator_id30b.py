@@ -1,4 +1,4 @@
-import numpy
+1import numpy
 import xraylib
 
 """

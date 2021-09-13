@@ -110,7 +110,7 @@ def app_gaussian(z, sigma_0= 10, sigma_1 = 10):
    filtered_z = gaussian_filter(z, (sigma_0,sigma_1), order=0, output=None, mode='nearest', cval=0.0, truncate=4.0)
    
    return filtered_z 
-   
+
 def scale_profile(surface, factor):
     """Brief function just to rescale the full surface"""
     z2 = np.copy(surface)
