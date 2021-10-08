@@ -37,7 +37,7 @@ plot(   energy_kev, Cu_MU,
 print("Integrated Cu, Be: ", Cu_MU_C.sum(), Be_MU_C.sum())
 
 
-angle = numpy.linspace(0, 2*numpy.pi, 500)
+angle = numpy.linspace(0, 2*numpy.pi, 1500)
 Si_ang_Compton = numpy.zeros_like(angle)
 Si_ang_Rayleigh = numpy.zeros_like(angle)
 Be_ang_Compton = numpy.zeros_like(angle)
@@ -57,6 +57,11 @@ for i in range(angle.size):
     OO_ang_Rayleigh[i] = xraylib.DCS_Thoms(       angle[i])
 
 print("Integrated Angle Si, Be: ", Si_ang_Compton.sum(), Be_ang_Compton.sum())
+integral = 2 * numpy.pi * numpy.trapz(Si_ang_Compton * numpy.abs(numpy.sin(angle)) / 2, angle)
+cs = xraylib.CSb_Compt(xraylib.SymbolToAtomicNumber("Si"), energy)
+print("Integrated Angle Si, From total cross section: ",
+            integral,
+            cs)
 
 plot(angle, Si_ang_Compton,
      angle, Si_ang_Rayleigh,
