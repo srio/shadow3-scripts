@@ -15,29 +15,40 @@ X = np.outer(x, np.ones_like(y))
 Y = np.outer(np.ones_like(x), y)
 image = X * Y
 
-plot_container = Image2Plot(image, x, y)
-# plot_container.ax_limits = [-4., 3., -1.1, 1.1]
-# plot_container.legends = ['2D plot testing - intensity cuts', 'x-axis (au)', 'y-axis (au)']
-plot_container.AspectRatio = True
-plot_container.ColorScheme = 8  # see ESRF_colours() and ESRF_colours_2D()
-# plot_container.plt_limits = [0, 1]
-# plot_container.Scale = 0  # 2D plot: 0 - linear; 1 - log10; 2: Gamma = 0.25.
-# plot_container.sort_class()
-
+# plot_container = Image2Plot(image, x, y)
+# # plot_container.ax_limits = [-4., 3., -1.1, 1.1]
+# # plot_container.legends = ['2D plot testing - intensity cuts', 'x-axis (au)', 'y-axis (au)']
+# plot_container.AspectRatio = True
+# plot_container.ColorScheme = 8  # see ESRF_colours() and ESRF_colours_2D()
+# # plot_container.plt_limits = [0, 1]
+# # plot_container.Scale = 0  # 2D plot: 0 - linear; 1 - log10; 2: Gamma = 0.25.
+# # plot_container.sort_class()
+#
 # plot_2D(plot_container, Crop=False, ROI='r', Scale=False, Enable=False, Silent=False, isphase=False,
 #         m=6.4, n=4.8, dpi=300)
-
-# plot_2D_cuts(plot_container, Enable=True, Silent=False, isphase=False, m=10, n=10, dpi=300, x=None, y=None)
-
-
-
-if plot_container.AspectRatio:
-    aspect_ratio = 'equal'
-else:
-    aspect_ratio = 'auto'
-
-plot_image_with_histograms(image, x, y, cmap=ESRF_colors_2D(8), aspect_ratio=aspect_ratio, figsize=(10,1.5), show=0,
-                           use_profiles_instead_histograms=True)
+#
+# plot_2D_cuts(plot_container, Enable=True, Silent=False, isphase=False, m=7.766563146, n=4.8, dpi=300, x=None, y=None)
 
 
-plot_show()
+# new
+
+image = Image2Plot(image, x, y)
+image.legends = ['ideal case', '($\mu$m)', '(mm)']
+image.AspectRatio = False
+# # image.ax_limits = [-25, 25, -2.5, 2.5]
+image.Scale = 0
+image.sort_class()
+plot_2D_cuts(image, Enable=True, Silent=False, m=7.766563146, n=4.8)
+
+
+
+# if plot_container.AspectRatio:
+#     aspect_ratio = 'equal'
+# else:
+#     aspect_ratio = 'auto'
+#
+# plot_image_with_histograms(image, x, y, cmap=ESRF_colors_2D(8), aspect_ratio=aspect_ratio, figsize=(10,1.5), show=0,
+#                            use_profiles_instead_histograms=True)
+#
+#
+# plot_show()
