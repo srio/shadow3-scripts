@@ -98,7 +98,8 @@ if __name__ == "__main__":
 
 
     mydiff = numpy.abs(yPi - yS)
-    Height, Position, FWHM, z11 = fit_gaussian(xS, mydiff, do_plot=0)
+
+    # Height, Position, FWHM, z11 = fit_gaussian(xS, mydiff, do_plot=0)
 
     if 1:
         z111 = sum_gauss(xS, 1.0, 0.10, 0.9* 10)
@@ -113,7 +114,7 @@ if __name__ == "__main__":
         xS, yS,
         xS, yPi,
         xS, mydiff,
-        xS, z11,
+        xS, z111,
         xS, yPi * amplitude_correction,
         legend=["vs pixel", "vs slit position", "P interpolated", "diff", "diff fit", "vs pixel amplitude corrected"],
         )
