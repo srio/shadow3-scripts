@@ -368,9 +368,9 @@ if __name__ == "__main__":
     e, h, v, f = get_source_from_file()
     e, h, v, f = slit  (e, h, v, f)
 
-    filter_substance = ['Si','C']
-    filter_thick     = [1.0, 1.0]
-    filter_dens      = ['?', '3.508']
+    filter_substance = ['Ti23.95Al2.83V','C2H6OSi','SiO2','C2H6OSi','Ti23.95Al2.83V', ]
+    filter_thick     = [6.51,            13.0,     10.0,  13.0,     6.51, ]
+    filter_dens      = [4.43,            0.9493,   2.32,  0.9493,   4.43, ]
     for i in range(len(filter_substance)):
         e, h, v, f = filter(e, h, v, f,
                             substance=filter_substance[i],
