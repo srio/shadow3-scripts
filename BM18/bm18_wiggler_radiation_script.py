@@ -1,5 +1,5 @@
 
-def get_source(do_plot=0):
+def get_source_bm18(do_plot=0):
     #
     # script to make the calculations (created by XOPPY:wiggler_radiation)
     #
@@ -15,7 +15,7 @@ def get_source(do_plot=0):
     h5_parameters["FIELD"]                   = 1   # 0= sinusoidal, 1=from file
     h5_parameters["FILE"]                    = '/nobackup/gurb1/srio/Oasys/ShadowOui-Tutorial/SOS-WORKSHOP/EBS-WIGGLERS/SW_BM18.txt'
     h5_parameters["POLARIZATION"]            = 0  # 0=total, 1=s, 2=p
-    h5_parameters["DISTANCE"]                = 30.0
+    h5_parameters["DISTANCE"]                = 26.276
     h5_parameters["HSLITPOINTS"]             = 50
     h5_parameters["VSLITPOINTS"]             = 50
     h5_parameters["PHOTONENERGYMIN"]         = 100.0
@@ -49,7 +49,7 @@ def get_source(do_plot=0):
             SHIFT_BETAX_VALUE        = h5_parameters["SHIFT_BETAX_VALUE"]      ,
             CONVOLUTION              = h5_parameters["CONVOLUTION"]            ,
             PASSEPARTOUT             = h5_parameters["PASSEPARTOUT"]            ,
-            h5_file                  = "wiggler_radiation.h5"                  ,
+            h5_file                  = "wiggler_radiation_bm18.h5"                  ,
             h5_entry_name            = "XOPPY_RADIATION"                       ,
             h5_initialize            = True                                    ,
             h5_parameters            = h5_parameters                           ,
@@ -64,12 +64,81 @@ def get_source(do_plot=0):
     #
     return energy, horizontal, vertical, flux3D
 
-def get_source_from_file(do_plot=0):
+
+##########
+
+def get_source_id19(do_plot=0):
+    #
+    # script to make the calculations (created by XOPPY:wiggler_radiation)
+    #
+
+    from xoppylib.sources.xoppy_bm_wiggler import xoppy_calc_wiggler_radiation
+
+    h5_parameters = dict()
+    h5_parameters["ELECTRONENERGY"]          = 6.0
+    h5_parameters["ELECTRONCURRENT"]         = 0.2
+    h5_parameters["PERIODID"]                = 0.15
+    h5_parameters["NPERIODS"]                = 6.867
+    h5_parameters["KV"]                      = 20.4911
+    h5_parameters["FIELD"]                   = 0   # 0= sinusoidal, 1=from file
+    h5_parameters["FILE"]                    = ''
+    h5_parameters["POLARIZATION"]            = 0  # 0=total, 1=s, 2=p
+    h5_parameters["DISTANCE"]                = 26.276
+    h5_parameters["HSLITPOINTS"]             = 200
+    h5_parameters["VSLITPOINTS"]             = 200
+    h5_parameters["PHOTONENERGYMIN"]         = 100.0
+    h5_parameters["PHOTONENERGYMAX"]         = 200000.0
+    h5_parameters["PHOTONENERGYPOINTS"]      = 500
+    h5_parameters["SHIFT_X_FLAG"]            = 5
+    h5_parameters["SHIFT_X_VALUE"]           = 0.0
+    h5_parameters["SHIFT_BETAX_FLAG"]        = 4
+    h5_parameters["SHIFT_BETAX_VALUE"]       = 0.0
+    h5_parameters["CONVOLUTION"]             = 1
+    h5_parameters["PASSEPARTOUT"]            = 3.0
+
+    energy, horizontal, vertical, flux3D, traj = xoppy_calc_wiggler_radiation(
+            ELECTRONENERGY           = h5_parameters["ELECTRONENERGY"]         ,
+            ELECTRONCURRENT          = h5_parameters["ELECTRONCURRENT"]        ,
+            PERIODID                 = h5_parameters["PERIODID"]               ,
+            NPERIODS                 = h5_parameters["NPERIODS"]               ,
+            KV                       = h5_parameters["KV"]                     ,
+            FIELD                    = h5_parameters["FIELD"]                  ,
+            FILE                     = h5_parameters["FILE"]                   ,
+            POLARIZATION             = h5_parameters["POLARIZATION"]           ,
+            DISTANCE                 = h5_parameters["DISTANCE"]               ,
+            HSLITPOINTS              = h5_parameters["HSLITPOINTS"]            ,
+            VSLITPOINTS              = h5_parameters["VSLITPOINTS"]            ,
+            PHOTONENERGYMIN          = h5_parameters["PHOTONENERGYMIN"]        ,
+            PHOTONENERGYMAX          = h5_parameters["PHOTONENERGYMAX"]        ,
+            PHOTONENERGYPOINTS       = h5_parameters["PHOTONENERGYPOINTS"]     ,
+            SHIFT_X_FLAG             = h5_parameters["SHIFT_X_FLAG"]           ,
+            SHIFT_X_VALUE            = h5_parameters["SHIFT_X_VALUE"]          ,
+            SHIFT_BETAX_FLAG         = h5_parameters["SHIFT_BETAX_FLAG"]       ,
+            SHIFT_BETAX_VALUE        = h5_parameters["SHIFT_BETAX_VALUE"]      ,
+            CONVOLUTION              = h5_parameters["CONVOLUTION"]            ,
+            PASSEPARTOUT             = h5_parameters["PASSEPARTOUT"]            ,
+            h5_file                  = "wiggler_radiation_id19.h5"                  ,
+            h5_entry_name            = "XOPPY_RADIATION"                       ,
+            h5_initialize            = True                                    ,
+            h5_parameters            = h5_parameters                           ,
+            )
+
+    # example plot
+    if do_plot:
+        from srxraylib.plot.gol import plot_image
+        plot_image(flux3D[0],horizontal,vertical,title="Flux [photons/s] per 0.1 bw per mm2 at %9.3f eV"%(100.0),xtitle="H [mm]",ytitle="V [mm]")
+    #
+    # end script
+    #
+    return energy, horizontal, vertical, flux3D
+
+##########
+def get_source_from_file(filename, do_plot=0):
     #
     # script to load the wiggler radiation calculations from file wiggler_radiation.h5
     #
     import h5py
-    hf = h5py.File('/tmp_14_days/srio/wiggler_radiation.h5', 'r')
+    hf = h5py.File(filename) # '/tmp_14_days/srio/wiggler_radiation.h5', 'r')
 
     flux3D = hf["/XOPPY_RADIATION/Radiation/stack_data"][:]
     energy = hf["/XOPPY_RADIATION/Radiation/axis0"][:]
@@ -365,7 +434,9 @@ def magnifier(energy, horizontal, vertical, flux3D, do_plot=0):
 
 if __name__ == "__main__":
 
-    e, h, v, f = get_source_from_file()
+    # e, h, v, f = get_source_from_file()
+    # e, h, v, f = get_source_bm18()
+    e, h, v, f = get_source_id19()
     e, h, v, f = slit  (e, h, v, f)
 
     filter_substance = ['Ti23.95Al2.83V','C2H6OSi','SiO2','C2H6OSi','Ti23.95Al2.83V', ]
