@@ -39,6 +39,80 @@ def plot_image_contour(p, h, v, aspect='equal', title="", xtitle="", ytitle="", 
         plt.show()
 
 
+def calculate_wiggler():
+    #
+    # script to make the calculations (created by XOPPY:undulator_spectrum)
+    #
+    from xoppylib.sources.xoppy_undulators import xoppy_calc_undulator_power_density
+
+    h5_parameters = dict()
+    h5_parameters["ELECTRONENERGY"] = 6.0
+    h5_parameters["ELECTRONENERGYSPREAD"] = 0.001
+    h5_parameters["ELECTRONCURRENT"] = 0.2
+    h5_parameters["ELECTRONBEAMSIZEH"] = 3.12305e-05
+    h5_parameters["ELECTRONBEAMSIZEV"] = 5.15684e-06
+    h5_parameters["ELECTRONBEAMDIVERGENCEH"] = 4.51388e-06
+    h5_parameters["ELECTRONBEAMDIVERGENCEV"] = 1.93917e-06
+    h5_parameters["PERIODID"] = 0.15
+    h5_parameters["NPERIODS"] = 10.667
+    h5_parameters["KV"] = 22.591
+    h5_parameters["KH"] = 0.0
+    h5_parameters["KPHASE"] = 0.0
+    h5_parameters["DISTANCE"] = 23.7
+    h5_parameters["GAPH"] = 0.1
+    h5_parameters["GAPV"] = 0.1
+    h5_parameters["HSLITPOINTS"] = 341
+    h5_parameters["VSLITPOINTS"] = 341
+    h5_parameters["METHOD"] = 2
+    h5_parameters["USEEMITTANCES"] = 1
+    h5_parameters["MASK_FLAG"] = 0
+    h5_parameters["MASK_ROT_H_DEG"] = 0.0
+    h5_parameters["MASK_ROT_V_DEG"] = 0.0
+    h5_parameters["MASK_H_MIN"] = -1000.0
+    h5_parameters["MASK_H_MAX"] = 1000.0
+    h5_parameters["MASK_V_MIN"] = -1000.0
+    h5_parameters["MASK_V_MAX"] = 1000.0
+
+    horizontal, vertical, power_density, code = xoppy_calc_undulator_power_density(
+        ELECTRONENERGY=h5_parameters["ELECTRONENERGY"],
+        ELECTRONENERGYSPREAD=h5_parameters["ELECTRONENERGYSPREAD"],
+        ELECTRONCURRENT=h5_parameters["ELECTRONCURRENT"],
+        ELECTRONBEAMSIZEH=h5_parameters["ELECTRONBEAMSIZEH"],
+        ELECTRONBEAMSIZEV=h5_parameters["ELECTRONBEAMSIZEV"],
+        ELECTRONBEAMDIVERGENCEH=h5_parameters["ELECTRONBEAMDIVERGENCEH"],
+        ELECTRONBEAMDIVERGENCEV=h5_parameters["ELECTRONBEAMDIVERGENCEV"],
+        PERIODID=h5_parameters["PERIODID"],
+        NPERIODS=h5_parameters["NPERIODS"],
+        KV=h5_parameters["KV"],
+        KH=h5_parameters["KH"],
+        KPHASE=h5_parameters["KPHASE"],
+        DISTANCE=h5_parameters["DISTANCE"],
+        GAPH=h5_parameters["GAPH"],
+        GAPV=h5_parameters["GAPV"],
+        HSLITPOINTS=h5_parameters["HSLITPOINTS"],
+        VSLITPOINTS=h5_parameters["VSLITPOINTS"],
+        METHOD=h5_parameters["METHOD"],
+        USEEMITTANCES=h5_parameters["USEEMITTANCES"],
+        MASK_FLAG=h5_parameters["MASK_FLAG"],
+        MASK_ROT_H_DEG=h5_parameters["MASK_ROT_H_DEG"],
+        MASK_ROT_V_DEG=h5_parameters["MASK_ROT_V_DEG"],
+        MASK_H_MIN=h5_parameters["MASK_H_MIN"],
+        MASK_H_MAX=h5_parameters["MASK_H_MAX"],
+        MASK_V_MIN=h5_parameters["MASK_V_MIN"],
+        MASK_V_MAX=h5_parameters["MASK_V_MAX"],
+        h5_file="undulator_power_density.h5",
+        h5_entry_name="XOPPY_POWERDENSITY",
+        h5_initialize=True,
+        h5_parameters=h5_parameters,
+    )
+    # example plot
+    # from srxraylib.plot.gol import plot_image
+    # plot_image(power_density, horizontal, vertical, xtitle="H [mm]", ytitle="V [mm]", title="Power density W/mm2")
+    #
+    # end script
+    #
+    return power_density, horizontal, vertical, h5_parameters["GAPH"], h5_parameters["DISTANCE"]
+
 
 def calculate():
     #
@@ -123,7 +197,12 @@ if __name__ == "__main__":
     CROP = numpy.linspace(1, 25, 50) / 25  # numpy.array([1.0,10/25,5/25,1/25])
     slit_aperture = numpy.zeros_like(CROP)
     slit_power = numpy.zeros_like(slit_aperture)
-    p, h, v, GAPH, DISTANCE = calculate()
+
+    # p, h, v, GAPH, DISTANCE = calculate()
+    p, h, v, GAPH, DISTANCE = calculate_wiggler()
+
+
+
     for i, crop in enumerate(CROP):
         slit_aperture[i] = 1e3 * GAPH * crop
         slit_power[i] = crop_center(p, crop, crop).sum() * (h[1] - h[0]) * (v[1] - v[0])
@@ -147,16 +226,9 @@ if __name__ == "__main__":
     hh = 2.0 * h[hplus]  # axes are now gap (aperture)
     vv = 2.0 * v[vplus]  # axes are now gap (aperture)
 
-    # if file_h5 is not None:
-    #     try:
-    #         h5_add_image(file_h5, subtitle, p3, hh, vv, image_name="PowerThroughSlit2D", title_x="X gap [mm]",
-    #                      title_y="Y gap [mm]")
-    #     except:
-    #         print(">> !! ERROR adding image to h5 file !!")
-
 
     from srxraylib.plot.gol import plot_image
 
     plot_image(p, h, v, xtitle="H [mm]", ytitle="V [mm]", title="Power density W/mm2", show=0)
-    plot_image(p3, hh, vv, title="PowerThroughSlit2D", xtitle="X gap [mm]", ytitle="Y gap [mm]", show=0)
-    plot_image_contour(p3, hh, vv, title="PowerThroughSlit2D", xtitle="X gap [mm]", ytitle="Y gap [mm]", contour_step=1000, show=1)
+    # plot_image(p3, hh, vv, title="Power [W] Through Slit", xtitle="X gap [mm]", ytitle="Y gap [mm]", show=0)
+    plot_image_contour(p3, hh, vv, title="Power [W] Through Slit", xtitle="X gap [mm]", ytitle="Y gap [mm]", contour_step=1000, show=1)
