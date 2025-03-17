@@ -4,7 +4,7 @@ from urllib.request import urlretrieve
 from silx.io.specfile import SpecFile
 
 
-def get_dabax_file(filename, url="http://ftp.esrf.eu/pub/scisoft/DabaxFiles/"):
+def get_dabax_file(filename, url="http://ftp.esrf.fr/pub/scisoft/DabaxFiles/"):
 
     try:
         if os.path.exists(filename):
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     get_dabax_file("MassEnergyAbsorption_NIST.dat")
 
-    for Z in range(1, 93):
+    for Z in [4, 6, 14, 29, 82]: # range(1, 93):
         symbol = xraylib.AtomicNumberToSymbol(Z)
         data = get_data_from_dabax_file(symbol)
         print(data.shape)
@@ -67,10 +67,21 @@ if __name__ == "__main__":
         mu_en = data[2, :]
 
         mu_en_xraylib = numpy.zeros_like(mu_en)
+        mu_xraylib = numpy.zeros_like(mu_en)
 
         for i, ienergy in enumerate(energy):
             mu_en_xraylib[i] = xraylib.CS_Energy(Z, 1e-3 * ienergy)
+            try:
+                mu_xraylib[i] = xraylib.CS_Total(Z, 1e-3 * ienergy)
+            except:
+                pass
 
         plot(energy, mu_en,
              energy, mu_en_xraylib,
-             xlog=1,ylog=1, title=symbol,legend=["NIST","xraylib"])
+             xlog=1,ylog=1, title=symbol,legend=["MassEnergyAbsorption_NIST","CS_Energy xraylib"],
+             xtitle="Photon energy [eV]", ytitle="Cross section cm2/g", xrange=[1e3,5e5], show=0)
+
+        plot(energy, mu_xraylib,
+             energy, mu_en,
+             xlog=1,ylog=1, title=symbol,legend=["CS_Total xraylib","MassEnergyAbsorption_NIST"],
+             xtitle="Photon energy [eV]", ytitle="Cross section cm2/g", xrange=[1e3,5e5], show=1)
