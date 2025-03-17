@@ -13,9 +13,13 @@ XRL_MU = numpy.zeros(l)
 XRL_MU_E = numpy.zeros(l)
 
 for i in range(l):
-    XRL_MU[i] = rho * xraylib.CS_Total(xraylib.SymbolToAtomicNumber("Be"), muoverrhos[i,0])
-    XRL_MU_E[i] = rho * xraylib.CS_Energy(xraylib.SymbolToAtomicNumber("Be"), muoverrhos[i,0])
-    # print("     >>",muoverrhos[i,0],rho*muoverrhos[i,1], XRL_MU[i], XRL_MU_E[i], XRL_MU_E[i] / XRL_MU[i])
+    try:
+        XRL_MU[i] = rho * xraylib.CS_Total(xraylib.SymbolToAtomicNumber("Be"), muoverrhos[i,0])
+        XRL_MU_E[i] = rho * xraylib.CS_Energy(xraylib.SymbolToAtomicNumber("Be"), muoverrhos[i,0])
+    except:
+        XRL_MU[i] = 0
+        XRL_MU_E[i] = 0
+        # print("     >>",muoverrhos[i,0],rho*muoverrhos[i,1], XRL_MU[i], XRL_MU_E[i], XRL_MU_E[i] / XRL_MU[i])
 
 from srxraylib.plot.gol import plot
 # plot(muoverrhos[:,0], rho*muoverrhos[:,1],
@@ -70,13 +74,13 @@ print(">>", nist.shape)
 
 plot(nist[:,0], nist[:,1],
      nist[:,0], nist[:,2],
-     xlog=1,ylog=1,title="Be",xtitle="Photon energy [keV]",ytitle="mu [cm2/g]",
+     xlog=1,ylog=1,title="Be",xtitle="Photon energy [MeV]",ytitle="mu [cm2/g]",
      legend=["mu nist", "mu_en nist"])
 
 plot(muoverrhos[:,0], XRL_MU/rho,
      muoverrhos[:, 0], XRL_MU_E/rho,
      nist[:,0]*1e+3, nist[:,1],
      nist[:,0]*1e+3, nist[:,2],
-     xlog=1,ylog=1,title="Be",xrange=[1,1e3],xtitle="Photon energy [keV]",ytitle="mu [cm2/g]",
+     xlog=1,ylog=1,title="Be",xrange=[1,1e3],xtitle="Photon energy [MeV]",ytitle="mu [cm2/g]",
      legend=["mu xraylib","mu_en xraylib", "mu nist", "mu_en nist"])
 
