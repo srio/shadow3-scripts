@@ -76,12 +76,12 @@ if __name__ == "__main__":
             except:
                 pass
 
-        plot(energy, mu_en,
-             energy, mu_en_xraylib,
-             xlog=1,ylog=1, title=symbol,legend=["MassEnergyAbsorption_NIST","CS_Energy xraylib"],
-             xtitle="Photon energy [eV]", ytitle="Cross section cm2/g", xrange=[1e3,5e5], show=0)
+        # plot(energy, mu_en,
+        #      energy, mu_en_xraylib,
+        #      xlog=1,ylog=1, title=symbol,legend=["MassEnergyAbsorption_NIST","CS_Energy xraylib"],
+        #      xtitle="Photon energy [eV]", ytitle="Cross section cm2/g", xrange=[1e3,5e5], show=0)
 
-        plot(energy, mu_xraylib,
-             energy, mu_en,
+        plot(1e-3 * energy, mu_xraylib,
+             1e-3 * energy, mu_en,
              xlog=1,ylog=1, title=symbol,legend=["CS_Total xraylib","MassEnergyAbsorption_NIST"],
-             xtitle="Photon energy [eV]", ytitle="Cross section cm2/g", xrange=[1e3,5e5], show=1)
+             xtitle="Photon energy [keV]", ytitle="Cross section cm2/g", xrange=[1,500], show=1)
